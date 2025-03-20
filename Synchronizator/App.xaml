@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:Synchronizator"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        
+        <!--WindowTitle-->
         <Style TargetType="{x:Type Button}" x:Key="WindowTitleStyle">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
@@ -39,10 +41,8 @@
         <!--ListView-->
         <SolidColorBrush x:Key="ListBox.Disabled.Background" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="ListBox.Disabled.Border" Color="#FFD9D9D9"/>
-        
+
         <Style x:Key="ListViewStyle" TargetType="{x:Type ListView}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
@@ -54,7 +54,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListView}">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="1" SnapsToDevicePixels="true">
+                        <Border Background="Transparent" BorderBrush="Transparent" Padding="1" SnapsToDevicePixels="true">
                             <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </ScrollViewer>
@@ -63,5 +63,26 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="MyItemContainerStyle" TargetType="ListViewItem">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                        <Border x:Name="brd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#19000000"/>
+                                <Setter Property="BorderBrush" Value="Black"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
     </Application.Resources>
 </Application>

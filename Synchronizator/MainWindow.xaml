@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Synchronizator"
         mc:Ignorable="d"
-        Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" WindowStyle="None" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" WindowStyle="None" MouseLeftButtonDown="Window_MouseLeftButtonDown" Loaded="Window_Loaded">
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"/>
     </WindowChrome.WindowChrome>
@@ -16,11 +16,14 @@
         </Grid.RowDefinitions>
 
         <!--Header-->
-        <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
-            <!--<Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MaximizeWindow_Click">🗖</Button>-->
-            <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
-        </StackPanel>
+        <Grid>
+            <Label Content="Synchronizator" HorizontalAlignment="Center" Padding="0" Margin="3" FontWeight="Bold"/>
+            <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
+                <!--<Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MaximizeWindow_Click">🗖</Button>-->
+                <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
+            </StackPanel>
+        </Grid>
 
         <!--Body-->
         <Grid Margin="5,5,5,5" Grid.Row="1">
@@ -35,60 +38,33 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
-                    <!--<StackPanel Grid.Row="1" Margin="2">
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Ходьба</Label>
-                        </CheckBox>
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Прыжок</Label>
-                        </CheckBox>
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Приседание</Label>
-                        </CheckBox>
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">ЛКМ</Label>
-                        </CheckBox>
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">ПКМ</Label>
-                        </CheckBox>
-                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
-                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Переключение оружия</Label>
-                        </CheckBox>
-                    </StackPanel>-->
-                    <ListView ItemsSource="{Binding Items}" Style="{StaticResource ListViewStyle}" Grid.Row="1" Margin="2" d:ItemsSource="{d:SampleData ItemCount=5}">
+                    <ListView ItemsSource="{Binding Items}" Style="{StaticResource ListViewStyle}" ItemContainerStyle="{StaticResource MyItemContainerStyle}" Grid.Row="1" Margin="2" d:ItemsSource="{d:SampleData ItemCount=5}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
                                     <CheckBox HorizontalAlignment="Left" Height="16" Content="{Binding Parameter}"/>
-                                    <Button Width="16" Height="16" HorizontalAlignment="Right" Style="{StaticResource GearStyle}" Cursor="Hand">
+                                    <Button Width="16" Height="16" HorizontalAlignment="Right" Style="{StaticResource GearStyle}" Cursor="Hand" Click="GearButton_Click">
                                         <Image Width="16" Height="16" Source="Assets/Images/gear.png"/>
                                     </Button>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            </Style>
-                        </ListView.ItemContainerStyle>
                     </ListView>
+                    <Button Grid.Row="2" Content="Применить" Margin="0 3 0 0" Background="#FF68EC68" BorderBrush="#FFC8C8C8"/>
                 </Grid>
             </Grid>
             
-            <Grid Grid.Column="1" Margin="5 20 0 0" VerticalAlignment="Top">
-                <!--<ComboBox Height="20" SelectedIndex="0">
-                    <ComboBoxItem>Ходьба</ComboBoxItem>
-                    <ComboBoxItem>Прыжок</ComboBoxItem>
-                    <ComboBoxItem>Приседание</ComboBoxItem>
-                    <ComboBoxItem>ЛКМ</ComboBoxItem>
-                    <ComboBoxItem>ПКМ</ComboBoxItem>
-                    <ComboBoxItem>Переключение оружия</ComboBoxItem>
-                </ComboBox>-->
-
-                <Button Width="50" Height="50" Content="Add" Click="AddItem"/>
+            <Grid Grid.Column="1" Margin="5 20 0 0">
+                <StackPanel HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox x:Name="enter_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="TextBox_PreviewKeyDown" IsReadOnly="True"/>
+                        <Label Content="&lt;-- Используемая в игре клавиша"/>
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </Grid>
     </Grid>

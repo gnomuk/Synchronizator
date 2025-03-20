@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,10 +21,25 @@ namespace Synchronizator
     /// </summary>
     public partial class MainWindow : Window
     {
+        string[] parameters = new[] { "Ходьба", "Прыжок", "Приседание", "ЛКМ", "ПКМ", "Переключение оружия"};
         public MainWindow()
         {
             InitializeComponent();
             this.DataContext = new ViewModel();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            foreach (string parameter in parameters)
+            {
+                viewModel.AddItem(parameter);
+            }
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
         }
 
         private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
@@ -35,16 +51,43 @@ namespace Synchronizator
         {
             Close();
         }
-
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        
+        private void GearButton_Click(object sender, RoutedEventArgs e)
         {
-            DragMove();
+            var button = sender as Button;
+            var item = button?.DataContext;
+
+            MessageBox.Show((item as LVItemSource_Class)?.Parameter);
+
+            //if (item != null)
+            //{
+            //    // Получаем ItemsSource из ListView
+            //    var listView = FindParent<ListView>(button);
+            //    var itemsSource = listView.ItemsSource as IList;
+
+            //    // Находим индекс элемента
+            //    int index = itemsSource.IndexOf(item);
+
+            //    // Здесь вы можете выполнять нужные действия с индексом
+            //    MessageBox.Show($"Кнопка нажата для элемента с индексом: {index}");
+            //}
         }
 
-        private void AddItem(object sender, RoutedEventArgs e)
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            var viewModel = (ViewModel)this.DataContext;
-            viewModel.AddItem("Новый элемент");
+            enter_keybind.Text = "";
+            enter_keybind.Text += e.Key.ToString();
+            e.Handled = true;
         }
+
+        //private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        //{
+        //    DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+
+        //    if (parentObject == null) return null;
+
+        //    T parent = parentObject as T;
+        //    return parent ?? FindParent<T>(parentObject);
+        //}
     }
 }
