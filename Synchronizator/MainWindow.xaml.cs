@@ -23,6 +23,7 @@ namespace Synchronizator
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new ViewModel();
         }
 
         private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
@@ -38,6 +39,12 @@ namespace Synchronizator
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        private void AddItem(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            viewModel.AddItem("Новый элемент");
         }
     }
 }
