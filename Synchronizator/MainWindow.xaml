@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Synchronizator"
         mc:Ignorable="d"
-        Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" WindowStyle="None">
+        Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" WindowStyle="None" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"/>
     </WindowChrome.WindowChrome>
@@ -14,18 +14,63 @@
             <RowDefinition Height="24"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-    
+
         <!--Header-->
         <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Margin="2 0 0 0" Width="24" Height="24">_</Button>
-            <Button Margin="2 0 0 0" Width="24" Height="24">🗖</Button>
-            <Button Margin="2 0 0 0" Width="24" Height="24">✕</Button>
+            <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
+            <!--<Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MaximizeWindow_Click">🗖</Button>-->
+            <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
         </StackPanel>
-        
+
         <!--Body-->
         <Grid Margin="5,5,5,5" Grid.Row="1">
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="200" Height="250">
-                <Border BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="210"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid HorizontalAlignment="Stretch" Grid.Column="0" VerticalAlignment="Stretch">
+                <Label Padding="0" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold">Параметры синхронизации</Label>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
+                    <StackPanel Grid.Row="1" Margin="2">
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Ходьба</Label>
+                        </CheckBox>
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Прыжок</Label>
+                        </CheckBox>
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Приседание</Label>
+                        </CheckBox>
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">ЛКМ</Label>
+                        </CheckBox>
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">ПКМ</Label>
+                        </CheckBox>
+                        <CheckBox VerticalAlignment="Top" Height="16" Margin="5 0 5 0">
+                            <Label FontSize="12" Margin="2 0 0 0" Padding="0">Переключение оружия</Label>
+                        </CheckBox>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Column="1" Margin="5 20 0 0" VerticalAlignment="Top">
+                <ComboBox Height="20" SelectedIndex="0">
+                    <ComboBoxItem>Ходьба</ComboBoxItem>
+                    <ComboBoxItem>Прыжок</ComboBoxItem>
+                    <ComboBoxItem>Приседание</ComboBoxItem>
+                    <ComboBoxItem>ЛКМ</ComboBoxItem>
+                    <ComboBoxItem>ПКМ</ComboBoxItem>
+                    <ComboBoxItem>Переключение оружия</ComboBoxItem>
+                </ComboBox>
+                
             </Grid>
         </Grid>
     </Grid>

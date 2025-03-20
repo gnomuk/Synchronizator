@@ -4,6 +4,32 @@
              xmlns:local="clr-namespace:Synchronizator"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!--<Style TargetType="Button" x:Key="WindowTitleStyle">
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="BorderBrush" Value="Transparent"></Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Black" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>-->
+        <Style TargetType="{x:Type Button}" x:Key="WindowTitleStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#66000000"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Application.Resources>
 </Application>

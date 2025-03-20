@@ -24,5 +24,20 @@ namespace Synchronizator
         {
             InitializeComponent();
         }
+
+        private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void CloseWindow_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
     }
 }
