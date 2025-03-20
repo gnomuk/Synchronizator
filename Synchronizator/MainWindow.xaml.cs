@@ -21,7 +21,18 @@ namespace Synchronizator
     /// </summary>
     public partial class MainWindow : Window
     {
-        string[] parameters = new[] { "Ходьба", "Прыжок", "Приседание", "ЛКМ", "ПКМ", "Переключение оружия"};
+        //string[] parameters = new[] { "Ходьба", "Прыжок", "Приседание", "ЛКМ", "ПКМ", "Переключение оружия"};
+
+        Dictionary<string, int> parameters = new Dictionary<string, int>()
+        {
+            {"Ходьба", 0},
+            {"Прыжок", 1},
+            {"Приседание", 1},
+            {"ЛКМ", 0},
+            {"ПКМ", 0},
+            {"Переключение оружия", 1}
+        };
+
         public MainWindow()
         {
             InitializeComponent();
@@ -31,9 +42,9 @@ namespace Synchronizator
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var viewModel = (ViewModel)this.DataContext;
-            foreach (string parameter in parameters)
+            foreach (var parameter in parameters)
             {
-                viewModel.AddItem(parameter);
+                viewModel.AddItem(parameter.Key, Convert.ToBoolean(parameter.Value));
             }
         }
 

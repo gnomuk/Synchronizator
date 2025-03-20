@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows;
 
 public class ViewModel
 {
@@ -9,8 +10,12 @@ public class ViewModel
         Items = new ObservableCollection<LVItemSource_Class>();
     }
 
-    public void AddItem(string parameter)
+    public void AddItem(string parameter, bool Show_Gear)
     {
-        Items.Add(new LVItemSource_Class { Parameter = parameter });
+        var visibility = Visibility.Visible;
+
+        if (Show_Gear == true) visibility = Visibility.Visible;
+        else visibility = Visibility.Hidden;
+        Items.Add(new LVItemSource_Class { Parameter = parameter, Show_Gear = visibility });
     }
 }

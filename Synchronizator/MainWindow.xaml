@@ -47,7 +47,7 @@
                             <DataTemplate>
                                 <Grid>
                                     <CheckBox HorizontalAlignment="Left" Height="16" Content="{Binding Parameter}"/>
-                                    <Button Width="16" Height="16" HorizontalAlignment="Right" Style="{StaticResource GearStyle}" Cursor="Hand" Click="GearButton_Click">
+                                    <Button Width="16" Height="16" HorizontalAlignment="Right" Style="{StaticResource GearStyle}" Cursor="Hand" Click="GearButton_Click" Visibility="{Binding Show_Gear}">
                                         <Image Width="16" Height="16" Source="Assets/Images/gear.png"/>
                                     </Button>
                                 </Grid>
@@ -57,14 +57,27 @@
                     <Button Grid.Row="2" Content="Применить" Margin="0 3 0 0" Background="#FF68EC68" BorderBrush="#FFC8C8C8"/>
                 </Grid>
             </Grid>
-            
+
             <Grid Grid.Column="1" Margin="5 20 0 0">
-                <StackPanel HorizontalAlignment="Left">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="30"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Vertical" Grid.RowSpan="2">
                     <StackPanel Orientation="Horizontal">
                         <TextBox x:Name="enter_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="TextBox_PreviewKeyDown" IsReadOnly="True"/>
-                        <Label Content="&lt;-- Используемая в игре клавиша"/>
+                        <Label Content="&lt;-- Используемая в игре клавиша" Padding="0"/>
                     </StackPanel>
                 </StackPanel>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="Сохранить" Grid.Column="1" Margin="2.5,3,0,0" Background="#FFCCCCCC" BorderBrush="#FFC8C8C8"/>
+                    <Button Content="Закрыть" Grid.Column="0" Margin="0,3,2.5,0" Background="#FFF3A0A0" BorderBrush="#FFC8C8C8"/>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
