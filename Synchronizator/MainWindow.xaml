@@ -5,8 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Synchronizator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" WindowStyle="None">
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"/>
+    </WindowChrome.WindowChrome>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+    
+        <!--Header-->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button Margin="2 0 0 0" Width="24" Height="24">_</Button>
+            <Button Margin="2 0 0 0" Width="24" Height="24">🗖</Button>
+            <Button Margin="2 0 0 0" Width="24" Height="24">✕</Button>
+        </StackPanel>
         
+        <!--Body-->
+        <Grid Margin="5,5,5,5" Grid.Row="1">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="200" Height="250">
+                <Border BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>
