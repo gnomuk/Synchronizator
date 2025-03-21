@@ -11,6 +11,8 @@ using System.Windows.Input;
 using WindowsInput;
 using Gma.System.MouseKeyHook;
 using System.IO;
+using System.Windows.Forms;
+using WindowsInput.Native;
 
 
 namespace Synchronizator
@@ -23,6 +25,121 @@ namespace Synchronizator
 
         string selected_parameter = "";
         const string CONFIG_PATH = "parameters.json";
+
+        Dictionary<string, Keys> winFormsKeycodes = new Dictionary<string, Keys>
+        {
+            {"A", Keys.A},
+            {"B", Keys.B},
+            {"C", Keys.C},
+            {"D", Keys.D},
+            {"E", Keys.E},
+            {"F", Keys.F},
+            {"G", Keys.G},
+            {"H", Keys.H},
+            {"I", Keys.I},
+            {"J", Keys.J},
+            {"K", Keys.K},
+            {"L", Keys.L},
+            {"M", Keys.M},
+            {"N", Keys.N},
+            {"O", Keys.O},
+            {"P", Keys.P},
+            {"Q", Keys.Q},
+            {"R", Keys.R},
+            {"S", Keys.S},
+            {"T", Keys.T},
+            {"U", Keys.U},
+            {"V", Keys.V},
+            {"W", Keys.W},
+            {"X", Keys.X},
+            {"Y", Keys.Y},
+            {"Z", Keys.Z},
+            {"Space", Keys.Space},
+            {"LeftCtrl", Keys.LControlKey},
+            {"RightCtrl", Keys.RControlKey},
+            {"LeftShift", Keys.LShiftKey},
+            {"RightShift", Keys.RShiftKey},
+            {"Enter", Keys.Enter},
+            {"Escape", Keys.Escape},
+            {"Backspace", Keys.Back},
+            {"Tab", Keys.Tab},
+            {"Left", Keys.Left},
+            {"Right", Keys.Right},
+            {"Up", Keys.Up},
+            {"Down", Keys.Down},
+            {"Home", Keys.Home},
+            {"End", Keys.End},
+            {"PageUp", Keys.PageUp},
+            {"PageDown", Keys.PageDown},
+            {"D1", Keys.D1},
+            {"D2", Keys.D2},
+            {"D3", Keys.D3},
+            {"D4", Keys.D4},
+            {"D5", Keys.D5},
+            {"D6", Keys.D6},
+            {"D7", Keys.D7},
+            {"D8", Keys.D8},
+            {"D9", Keys.D9},
+            {"D0", Keys.D0}
+        };
+
+        Dictionary<string, VirtualKeyCode> virtualKeycodes = new Dictionary<string, VirtualKeyCode>
+        {
+            {"0", VirtualKeyCode.VK_0},
+            {"1", VirtualKeyCode.VK_1},
+            {"2", VirtualKeyCode.VK_2},
+            {"3", VirtualKeyCode.VK_3},
+            {"4", VirtualKeyCode.VK_4},
+            {"5", VirtualKeyCode.VK_5},
+            {"6", VirtualKeyCode.VK_6},
+            {"7", VirtualKeyCode.VK_7},
+            {"8", VirtualKeyCode.VK_8},
+            {"9", VirtualKeyCode.VK_9},
+            {"A", VirtualKeyCode.VK_A},
+            {"B", VirtualKeyCode.VK_B},
+            {"C", VirtualKeyCode.VK_C},
+            {"D", VirtualKeyCode.VK_D},
+            {"E", VirtualKeyCode.VK_E},
+            {"F", VirtualKeyCode.VK_F},
+            {"G", VirtualKeyCode.VK_G},
+            {"H", VirtualKeyCode.VK_H},
+            {"I", VirtualKeyCode.VK_I},
+            {"J", VirtualKeyCode.VK_J},
+            {"K", VirtualKeyCode.VK_K},
+            {"L", VirtualKeyCode.VK_L},
+            {"M", VirtualKeyCode.VK_M},
+            {"N", VirtualKeyCode.VK_N},
+            {"O", VirtualKeyCode.VK_O},
+            {"P", VirtualKeyCode.VK_P},
+            {"Q", VirtualKeyCode.VK_Q},
+            {"R", VirtualKeyCode.VK_R},
+            {"S", VirtualKeyCode.VK_S},
+            {"T", VirtualKeyCode.VK_T},
+            {"U", VirtualKeyCode.VK_U},
+            {"V", VirtualKeyCode.VK_V},
+            {"W", VirtualKeyCode.VK_W},
+            {"X", VirtualKeyCode.VK_X},
+            {"Y", VirtualKeyCode.VK_Y},
+            {"Z", VirtualKeyCode.VK_Z},
+            {"Insert", VirtualKeyCode.INSERT},
+            {"Backspace", VirtualKeyCode.BACK},
+            {"Tab", VirtualKeyCode.TAB},
+            {"Enter", VirtualKeyCode.RETURN},
+            {"Escape", VirtualKeyCode.ESCAPE},
+            {"Space", VirtualKeyCode.SPACE},
+            {"Left", VirtualKeyCode.LEFT},
+            {"Right", VirtualKeyCode.RIGHT},
+            {"Up", VirtualKeyCode.UP},
+            {"Down", VirtualKeyCode.DOWN},
+            {"Home", VirtualKeyCode.HOME},
+            {"End", VirtualKeyCode.END},
+            {"PageUp", VirtualKeyCode.PRIOR},
+            {"PageDown", VirtualKeyCode.NEXT},
+            {"LeftCtrl", VirtualKeyCode.LCONTROL},
+            {"RightCtrl", VirtualKeyCode.RCONTROL},
+            {"LeftShift", VirtualKeyCode.LSHIFT},
+            {"RightShift", VirtualKeyCode.RSHIFT}
+        };
 
         Dictionary<string, int> parameters = new Dictionary<string, int>()
         {
@@ -51,9 +168,8 @@ namespace Synchronizator
             if (!File.Exists(CONFIG_PATH)) { CreateConfig(); }
 
             var loadedViewModel = new ViewModelConfiguration();
-            var viewModel = (ViewModel)this.DataContext;
-
             loadedViewModel.LoadFromJson(CONFIG_PATH);
+            var viewModel = (ViewModel)this.DataContext;
 
             // Проверяем загруженные данные
             foreach (var parameter in loadedViewModel.Parameters)
@@ -87,7 +203,7 @@ namespace Synchronizator
 
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
-            var button = sender as Button;
+            var button = sender as System.Windows.Controls.Button;
             var item = button?.DataContext;
             selected_parameter = (item as LVItemSource_Class)?.Parameter;
             parameter_name.Content = selected_parameter;
@@ -128,9 +244,9 @@ namespace Synchronizator
             //}
         }
 
-        private void KeyInput(object sender, KeyEventArgs e)
+        private void KeyInput(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            TextBox textBox = sender as TextBox;
+            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
             string key = e.Key.ToString();
             if (key == "Back") { textBox.Text = ""; return; }
             textBox.Text = e.Key.ToString();
@@ -277,79 +393,33 @@ namespace Synchronizator
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             bool spaceIsPressed = false;
-            bool ctrlIsPressed = false;
-            bool shiftIsPressed = false;
             bool gIsPressed = false;
             bool eIsPressed = false;
 
-            //bool wIsPressed = false;
-            //bool sIsPressed = false;
-            //bool aIsPressed = false;
-            //bool dIsPressed = false;
-
-            ////WASD Global Hook
-            //if (e.KeyCode == System.Windows.Forms.Keys.W && !wIsPressed)
-            //{
-            //    wIsPressed = true;
-            //    SendMessageToOtherComputer("WPressed");
-            //    return;
-            //}
-            //if (e.KeyCode == System.Windows.Forms.Keys.S && !sIsPressed)
-            //{
-            //    sIsPressed = true;
-            //    SendMessageToOtherComputer("SPressed");
-            //    return;
-            //}
-            //if (e.KeyCode == System.Windows.Forms.Keys.A && !aIsPressed)
-            //{
-            //    aIsPressed = true;
-            //    SendMessageToOtherComputer("APressed");
-            //    return;
-            //}
-            //if (e.KeyCode == System.Windows.Forms.Keys.D && !dIsPressed)
-            //{
-            //    dIsPressed = true;
-            //    SendMessageToOtherComputer("DPressed");
-            //    return;
-            //}
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
 
             //Прыжок
-            if (e.KeyCode == System.Windows.Forms.Keys.Space && !spaceIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !spaceIsPressed)
             {
                 spaceIsPressed = true;
-                SendMessageToOtherComputer("SpacePressed");
-                return;
-            }
-
-            // Приседание
-            if (e.KeyCode == System.Windows.Forms.Keys.LControlKey && !ctrlIsPressed)
-            {
-                ctrlIsPressed = true;
-                SendMessageToOtherComputer("CtrlPressed");
-                return;
-            }
-
-            //Шифт
-            if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey && !shiftIsPressed)
-            {
-                shiftIsPressed = true;
-                SendMessageToOtherComputer("ShiftPressed");
+                SendMessageToOtherComputer("Jump");
                 return;
             }
 
             //Выбросить оружие
-            if (e.KeyCode == System.Windows.Forms.Keys.G && !gIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !gIsPressed)
             {
                 gIsPressed = true;
-                SendMessageToOtherComputer("gPressed");
+                SendMessageToOtherComputer("Drop");
                 return;
             }
 
             //Взаимодействие
-            if (e.KeyCode == System.Windows.Forms.Keys.E && !eIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !eIsPressed)
             {
                 eIsPressed = true;
-                SendMessageToOtherComputer("ePressed");
+                SendMessageToOtherComputer("Interact");
                 return;
             }
         }
@@ -379,63 +449,22 @@ namespace Synchronizator
                 int bytes = await stream.ReadAsync(data, 0, data.Length);
                 string responseData = Encoding.UTF8.GetString(data, 0, bytes);
 
+                var loadedViewModel = new ViewModelConfiguration();
+                loadedViewModel.LoadFromJson(CONFIG_PATH);
+
                 switch (responseData)
                 {
-                    case "SpacePressed":
-                        _globalHook.KeyDown -= GlobalHook_KeyDown;
-                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SPACE);
-                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SPACE);
-                        _globalHook.KeyDown += GlobalHook_KeyDown;
-                        break;
-                    //case "WPressed":
-                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
-                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_W);
-                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
-                    //    break;
-                    //case "SPressed":
-                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
-                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_S);
-                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
-                    //    break;
-                    //case "APressed":
-                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
-                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_A);
-                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
-                    //    break;
-                    //case "DPressed":
-                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
-                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_D);
-                    //    inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);
-                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
-                    //    break;
-
-                    case "CtrlPressed":
-                        _globalHook.KeyDown -= GlobalHook_KeyDown;
-                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.CONTROL);
-                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.CONTROL);
-                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                    case "Jump": 
+                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break;
 
-                    case "ShiftPressed":
-                        _globalHook.KeyDown -= GlobalHook_KeyDown;
-                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SHIFT);
-                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SHIFT);
-                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                    case "Drop":
+                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break;
 
-                    case "GPressed":
-                        _globalHook.KeyDown -= GlobalHook_KeyDown;
-                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_G);
-                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_G);
-                        _globalHook.KeyDown += GlobalHook_KeyDown;
-                        break;
-
-                    case "EPressed":
-                        _globalHook.KeyDown -= GlobalHook_KeyDown;
-                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_E);
-                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_E);
-                        _globalHook.KeyDown += GlobalHook_KeyDown;
-                        break;
+                    case "Interact":
+                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;  
                 }
             }
         }
@@ -448,6 +477,18 @@ namespace Synchronizator
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 await stream.WriteAsync(data, 0, data.Length);
             }
+        }
+
+        private Keys GetWinFormsKeyCodeFromDictionary(string key) { return winFormsKeycodes[key]; }
+
+        private VirtualKeyCode GetVirtualKeyCodeFromDictionary(string key) { return virtualKeycodes[key]; }
+
+        private void PressButton(VirtualKeyCode keyCode)
+        {
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            inputSimulator.Keyboard.KeyDown(keyCode);
+            inputSimulator.Keyboard.KeyUp(keyCode);
+            _globalHook.KeyDown += GlobalHook_KeyDown;
         }
 
         //private T FindParent<T>(DependencyObject child) where T : DependencyObject
