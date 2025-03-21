@@ -276,14 +276,82 @@ namespace Synchronizator
 
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            bool isPressed = false;
-            if (e.KeyCode == System.Windows.Forms.Keys.Space && !isPressed)
+            bool spaceIsPressed = false;
+            bool ctrlIsPressed = false;
+            bool shiftIsPressed = false;
+            bool gIsPressed = false;
+            bool eIsPressed = false;
+
+            //bool wIsPressed = false;
+            //bool sIsPressed = false;
+            //bool aIsPressed = false;
+            //bool dIsPressed = false;
+
+            ////WASD Global Hook
+            //if (e.KeyCode == System.Windows.Forms.Keys.W && !wIsPressed)
+            //{
+            //    wIsPressed = true;
+            //    SendMessageToOtherComputer("WPressed");
+            //    return;
+            //}
+            //if (e.KeyCode == System.Windows.Forms.Keys.S && !sIsPressed)
+            //{
+            //    sIsPressed = true;
+            //    SendMessageToOtherComputer("SPressed");
+            //    return;
+            //}
+            //if (e.KeyCode == System.Windows.Forms.Keys.A && !aIsPressed)
+            //{
+            //    aIsPressed = true;
+            //    SendMessageToOtherComputer("APressed");
+            //    return;
+            //}
+            //if (e.KeyCode == System.Windows.Forms.Keys.D && !dIsPressed)
+            //{
+            //    dIsPressed = true;
+            //    SendMessageToOtherComputer("DPressed");
+            //    return;
+            //}
+
+            //Прыжок
+            if (e.KeyCode == System.Windows.Forms.Keys.Space && !spaceIsPressed)
             {
-                isPressed = true;
+                spaceIsPressed = true;
                 SendMessageToOtherComputer("SpacePressed");
                 return;
             }
-            isPressed = false;
+
+            // Приседание
+            if (e.KeyCode == System.Windows.Forms.Keys.LControlKey && !ctrlIsPressed)
+            {
+                ctrlIsPressed = true;
+                SendMessageToOtherComputer("CtrlPressed");
+                return;
+            }
+
+            //Шифт
+            if (e.KeyCode == System.Windows.Forms.Keys.LShiftKey && !shiftIsPressed)
+            {
+                shiftIsPressed = true;
+                SendMessageToOtherComputer("ShiftPressed");
+                return;
+            }
+
+            //Выбросить оружие
+            if (e.KeyCode == System.Windows.Forms.Keys.G && !gIsPressed)
+            {
+                gIsPressed = true;
+                SendMessageToOtherComputer("gPressed");
+                return;
+            }
+
+            //Взаимодействие
+            if (e.KeyCode == System.Windows.Forms.Keys.E && !eIsPressed)
+            {
+                eIsPressed = true;
+                SendMessageToOtherComputer("ePressed");
+                return;
+            }
         }
 
         private void StartServer()
@@ -302,22 +370,72 @@ namespace Synchronizator
             }
         }
 
-        private async Task HandleClient(TcpClient client)
+        private async Task HandleClient(TcpClient client)                                
         {
-            using (client)
+            using (client)    
             {
                 NetworkStream stream = client.GetStream();
                 byte[] data = new byte[256];
                 int bytes = await stream.ReadAsync(data, 0, data.Length);
                 string responseData = Encoding.UTF8.GetString(data, 0, bytes);
 
-                if (responseData == "SpacePressed")
+                switch (responseData)
                 {
-                    _globalHook.KeyDown -= GlobalHook_KeyDown;
+                    case "SpacePressed":
+                        _globalHook.KeyDown -= GlobalHook_KeyDown;
+                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SPACE);
+                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SPACE);
+                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                        break;
+                    //case "WPressed":
+                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
+                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_W);
+                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
+                    //    break;
+                    //case "SPressed":
+                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
+                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_S);
+                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
+                    //    break;
+                    //case "APressed":
+                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
+                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_A);
+                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
+                    //    break;
+                    //case "DPressed":
+                    //    _globalHook.KeyDown -= GlobalHook_KeyDown;
+                    //    inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_D);
+                    //    inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_D);
+                    //    _globalHook.KeyDown += GlobalHook_KeyDown;
+                    //    break;
 
-                    inputSimulator.Keyboard.KeyPress(WindowsInput.Native.VirtualKeyCode.SPACE);
-                    
-                    _globalHook.KeyDown += GlobalHook_KeyDown;
+                    case "CtrlPressed":
+                        _globalHook.KeyDown -= GlobalHook_KeyDown;
+                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.CONTROL);
+                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.CONTROL);
+                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                        break;
+
+                    case "ShiftPressed":
+                        _globalHook.KeyDown -= GlobalHook_KeyDown;
+                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.SHIFT);
+                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.SHIFT);
+                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                        break;
+
+                    case "GPressed":
+                        _globalHook.KeyDown -= GlobalHook_KeyDown;
+                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_G);
+                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_G);
+                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                        break;
+
+                    case "EPressed":
+                        _globalHook.KeyDown -= GlobalHook_KeyDown;
+                        inputSimulator.Keyboard.KeyDown(WindowsInput.Native.VirtualKeyCode.VK_E);
+                        inputSimulator.Keyboard.KeyUp(WindowsInput.Native.VirtualKeyCode.VK_E);
+                        _globalHook.KeyDown += GlobalHook_KeyDown;
+                        break;
                 }
             }
         }
