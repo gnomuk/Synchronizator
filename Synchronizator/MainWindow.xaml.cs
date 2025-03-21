@@ -151,7 +151,7 @@ namespace Synchronizator
             {"ПКМ", 0},
             {"Переключение оружия", 1},
             {"Выбросить оружие", 1 },
-            {"Кнопка действия", 1 }
+            {"Взаимодействие", 1 }
         };
 
         public MainWindow()
@@ -368,7 +368,7 @@ namespace Synchronizator
               "      \"MainKey\": \"G\"\n" +
               "    }\n" +
               "  },\n" +
-              "  \"Кнопка действия\": {\n" +
+              "  \"Взаимодействие\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
               "      \"MainKey\": \"E\"\n" +
@@ -382,12 +382,26 @@ namespace Synchronizator
         {
             _globalHook = Hook.GlobalEvents();
             _globalHook.KeyDown += GlobalHook_KeyDown;
+            _globalHook.MouseDown += GlobalHook_MouseDown;
         }
 
-        private void UnsubscribeToGlobalHook()
+        private void UnsubscribeFromGlobalHook()
         {
             _globalHook.KeyDown -= GlobalHook_KeyDown;
+            _globalHook.MouseDown -= GlobalHook_MouseDown;
             _globalHook.Dispose();
+        }
+
+        private void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            bool lmb = false;
+
+            if (e.Button == MouseButtons.Left && !lmb)
+            {
+                lmb = true;
+                SendMessageToOtherComputer("Fire");
+                return;
+            }
         }
 
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
@@ -416,8 +430,8 @@ namespace Synchronizator
             }
 
             //Взаимодействие
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !eIsPressed)
-            {
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !eIsPressed)
+            {        
                 eIsPressed = true;
                 SendMessageToOtherComputer("Interact");
                 return;
@@ -440,7 +454,7 @@ namespace Synchronizator
             }
         }
 
-        private async Task HandleClient(TcpClient client)                                
+        private async Task HandleClient(TcpClient client)
         {
             using (client)    
             {
@@ -455,16 +469,20 @@ namespace Synchronizator
                 switch (responseData)
                 {
                     case "Jump": 
-                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break;
 
                     case "Drop":
-                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break;
 
                     case "Interact":
-                        PressButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;  
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break; 
+                    
+                    case "Fire":
+                        PressMouseButton();
+                        break;
                 }
             }
         }
@@ -483,7 +501,7 @@ namespace Synchronizator
 
         private VirtualKeyCode GetVirtualKeyCodeFromDictionary(string key) { return virtualKeycodes[key]; }
 
-        private void PressButton(VirtualKeyCode keyCode)
+        private void PressKeyboardButton(VirtualKeyCode keyCode)
         {
             _globalHook.KeyDown -= GlobalHook_KeyDown;
             inputSimulator.Keyboard.KeyDown(keyCode);
@@ -491,14 +509,13 @@ namespace Synchronizator
             _globalHook.KeyDown += GlobalHook_KeyDown;
         }
 
-        //private T FindParent<T>(DependencyObject child) where T : DependencyObject
-        //{
-        //    DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+        private void PressMouseButton()
+        {
+            _globalHook.MouseDown -= GlobalHook_MouseDown;
+            inputSimulator.Mouse.LeftButtonDown();
+            inputSimulator.Mouse.LeftButtonUp();
+            _globalHook.MouseDown += GlobalHook_MouseDown;
+        }
 
-        //    if (parentObject == null) return null;
-
-        //    T parent = parentObject as T;
-        //    return parent ?? FindParent<T>(parentObject);
-        //}
     }
 }
