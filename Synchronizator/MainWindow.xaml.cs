@@ -15,9 +15,6 @@ using System.IO;
 
 namespace Synchronizator
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private TcpListener listener;
@@ -45,6 +42,7 @@ namespace Synchronizator
             InitializeComponent();
             StartServer();
             SubscribeToGlobalHook();
+            inputSimulator = new InputSimulator();
             this.DataContext = new ViewModel();
         }
 
@@ -173,25 +171,6 @@ namespace Synchronizator
                 viewModelConfig.AddParameter(parameter.Key, viewModel.Items.Where(item => item.Parameter == parameter.Key).Select(item => item.IsChecked).ToList().FirstOrDefault(), keybinds);
             }
             viewModelConfig.SaveToJson(CONFIG_PATH);
-
-            //foreach (var selectedItem in selectedItems)
-            //{
-            //    Debug.WriteLine($"Выбранный элемент: {selectedItem}");
-            //}
-
-            //foreach (var parameter in viewModelConfig.Parameters)
-            //{
-            //    var parameterName = parameter.Key;
-            //    var checkboxState = parameter.Value.checkboxState;
-            //    var keybinds1 = parameter.Value.keybinds;
-
-            //    Console.WriteLine($"Parameter: {parameterName}, Checkbox State: {checkboxState}");
-
-            //    foreach (var keybind in keybinds1)
-            //    {
-            //        Console.WriteLine($"  Keybind: {keybind.Key} => {keybind.Value}");
-            //    }
-            //}
         }
 
         private void SaveParameterConfiguration_Button(object sender, RoutedEventArgs e)
@@ -289,12 +268,22 @@ namespace Synchronizator
             _globalHook.KeyDown += GlobalHook_KeyDown;
         }
 
+        private void UnsubscribeToGlobalHook()
+        {
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            _globalHook.Dispose();
+        }
+
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            if (e.KeyCode == System.Windows.Forms.Keys.Space)
+            bool isPressed = false;
+            if (e.KeyCode == System.Windows.Forms.Keys.Space && !isPressed)
             {
+                isPressed = true;
                 SendMessageToOtherComputer("SpacePressed");
+                return;
             }
+            isPressed = false;
         }
 
         private void StartServer()
@@ -324,8 +313,11 @@ namespace Synchronizator
 
                 if (responseData == "SpacePressed")
                 {
-                    // Имитация нажатия пробела
+                    _globalHook.KeyDown -= GlobalHook_KeyDown;
+
                     inputSimulator.Keyboard.KeyPress(WindowsInput.Native.VirtualKeyCode.SPACE);
+                    
+                    _globalHook.KeyDown += GlobalHook_KeyDown;
                 }
             }
         }
@@ -338,13 +330,6 @@ namespace Synchronizator
                 byte[] data = Encoding.UTF8.GetBytes(message);
                 await stream.WriteAsync(data, 0, data.Length);
             }
-        }
-
-        protected override void OnClosed(EventArgs e)
-        {
-            _globalHook.KeyDown -= GlobalHook_KeyDown;
-            _globalHook.Dispose();
-            base.OnClosed(e);
         }
 
         //private T FindParent<T>(DependencyObject child) where T : DependencyObject
