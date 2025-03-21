@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using WindowsInput;
+using Gma.System.MouseKeyHook;
+using System.IO;
+
 
 namespace Synchronizator
 {
@@ -22,28 +20,38 @@ namespace Synchronizator
     /// </summary>
     public partial class MainWindow : Window
     {
+        private TcpListener listener;
+        private InputSimulator inputSimulator;
+        private IKeyboardMouseEvents _globalHook;
+
         string selected_parameter = "";
-        const string CONFIG_PATH = "C:/Users/gnomuk/Desktop/json/parameters.json";
+        const string CONFIG_PATH = "parameters.json";
 
         Dictionary<string, int> parameters = new Dictionary<string, int>()
         {
             {"Ходьба", 0},
             {"Прыжок", 1},
             {"Приседание", 1},
+            {"Шифт", 0},
             {"ЛКМ", 0},
             {"ПКМ", 0},
             {"Переключение оружия", 1},
-            {"Выбросить оружие", 1 }
+            {"Выбросить оружие", 1 },
+            {"Кнопка действия", 1 }
         };
 
         public MainWindow()
         {
             InitializeComponent();
+            StartServer();
+            SubscribeToGlobalHook();
             this.DataContext = new ViewModel();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!File.Exists(CONFIG_PATH)) { CreateConfig(); }
+
             var loadedViewModel = new ViewModelConfiguration();
             var viewModel = (ViewModel)this.DataContext;
 
@@ -79,13 +87,35 @@ namespace Synchronizator
         {
             EraseInputs();
 
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
             var button = sender as Button;
             var item = button?.DataContext;
             selected_parameter = (item as LVItemSource_Class)?.Parameter;
-
             parameter_name.Content = selected_parameter;
             configurationMenu_grid.Visibility = Visibility.Visible;
-            
+
+            if (selected_parameter == "Переключение оружия")
+            {
+                mainConfig_Grid.Visibility = Visibility.Hidden;
+                weaponSwap_Config_Grid.Visibility = Visibility.Visible;
+
+                mainWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault();
+                secondaryWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault();
+                knifeWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault();
+                grenadesWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault();
+                bombWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault();
+            }
+            else
+            {
+                enter_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == selected_parameter).SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
+                mainConfig_Grid.Visibility = Visibility.Visible;
+            }
+
+
+
+
             //if (item != null)
             //{
             //    // Получаем ItemsSource из ListView
@@ -100,10 +130,12 @@ namespace Synchronizator
             //}
         }
 
-        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void KeyInput(object sender, KeyEventArgs e)
         {
-            enter_keybind.Text = "";
-            enter_keybind.Text += e.Key.ToString();
+            TextBox textBox = sender as TextBox;
+            string key = e.Key.ToString();
+            if (key == "Back") { textBox.Text = ""; return; }
+            textBox.Text = e.Key.ToString();
             e.Handled = true;
         }
 
@@ -115,7 +147,12 @@ namespace Synchronizator
 
         private void EraseInputs()
         {
-            enter_keybind.Text = "";
+            enter_keybind.Clear();
+            mainWeapon_keybind.Clear();
+            secondaryWeapon_keybind.Clear();
+            knifeWeapon_keybind.Clear();
+            grenadesWeapon_keybind.Clear();
+            bombWeapon_keybind.Clear();
         }
 
         private void ApplyChanges_button(object sender, RoutedEventArgs e)
@@ -163,10 +200,151 @@ namespace Synchronizator
             viewModelConfig.LoadFromJson(CONFIG_PATH);
             var keybinds = new Dictionary<string, string>();
 
-            keybinds.Add("BIND", enter_keybind.Text);
+            if (selected_parameter == "Переключение оружия")
+            {
+                keybinds.Add("MainWeapon", mainWeapon_keybind.Text);
+                keybinds.Add("SecondaryWeapon", secondaryWeapon_keybind.Text);
+                keybinds.Add("Knife", knifeWeapon_keybind.Text);
+                keybinds.Add("Grenades", grenadesWeapon_keybind.Text);
+                keybinds.Add("Bomb", bombWeapon_keybind.Text);
+            }
+            else
+            {
+                keybinds.Add("MainKey", enter_keybind.Text);
+            }
 
             viewModelConfig.AddParameter(selected_parameter, true, keybinds);
             viewModelConfig.SaveToJson(CONFIG_PATH);
+        }
+
+        private void CreateConfig()
+        {
+
+            const string CONFIG = "{\n" +
+              "  \"Ходьба\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Прыжок\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"Space\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Приседание\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"LeftCtrl\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Шифт\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"ЛКМ\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"ПКМ\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Переключение оружия\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainWeapon\": \"D1\",\n" +
+              "      \"SecondaryWeapon\": \"D2\",\n" +
+              "      \"Knife\": \"D3\",\n" +
+              "      \"Grenades\": \"D4\",\n" +
+              "      \"Bomb\": \"D5\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Выбросить оружие\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"G\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Кнопка действия\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"E\"\n" +
+              "    }\n" +
+              "  }\n" +
+            "}";
+            File.WriteAllText(CONFIG_PATH, CONFIG);
+        }
+
+        private void SubscribeToGlobalHook()
+        {
+            _globalHook = Hook.GlobalEvents();
+            _globalHook.KeyDown += GlobalHook_KeyDown;
+        }
+
+        private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            if (e.KeyCode == System.Windows.Forms.Keys.Space)
+            {
+                SendMessageToOtherComputer("SpacePressed");
+            }
+        }
+
+        private void StartServer()
+        {
+            listener = new TcpListener(IPAddress.Any, 5000);
+            listener.Start();
+            Task.Run(() => ListenForMessages());
+        }
+
+        private async void ListenForMessages()
+        {
+            while (true)
+            {
+                TcpClient client = await listener.AcceptTcpClientAsync();
+                _ = Task.Run(() => HandleClient(client));
+            }
+        }
+
+        private async Task HandleClient(TcpClient client)
+        {
+            using (client)
+            {
+                NetworkStream stream = client.GetStream();
+                byte[] data = new byte[256];
+                int bytes = await stream.ReadAsync(data, 0, data.Length);
+                string responseData = Encoding.UTF8.GetString(data, 0, bytes);
+
+                if (responseData == "SpacePressed")
+                {
+                    // Имитация нажатия пробела
+                    inputSimulator.Keyboard.KeyPress(WindowsInput.Native.VirtualKeyCode.SPACE);
+                }
+            }
+        }
+
+        private async void SendMessageToOtherComputer(string message)
+        {
+            using (TcpClient client = new TcpClient("26.245.20.241", 5000))
+            {
+                NetworkStream stream = client.GetStream();
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await stream.WriteAsync(data, 0, data.Length);
+            }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            _globalHook.Dispose();
+            base.OnClosed(e);
         }
 
         //private T FindParent<T>(DependencyObject child) where T : DependencyObject
