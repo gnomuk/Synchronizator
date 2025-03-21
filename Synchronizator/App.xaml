@@ -24,6 +24,25 @@
             </Style.Triggers>
         </Style>
 
+        <!--Pin-->
+        <Style TargetType="{x:Type Button}" x:Key="PinStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!--Gear-->
         <Style TargetType="{x:Type Button}" x:Key="GearStyle">
             <Setter Property="Background" Value="Transparent"/>

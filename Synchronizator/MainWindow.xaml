@@ -17,11 +17,20 @@
 
         <!--Header-->
         <Grid>
-            <Label Content="Synchronizator" HorizontalAlignment="Center" Padding="0" Margin="3" FontWeight="Bold"/>
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <Button Width="16" Height="16" Margin="10 0 0 0" Cursor="Hand" Style="{StaticResource PinStyle}" Click="ConnectLocal_Button">
+                    <Image x:Name="ConnectButton_Image" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Source="Assets/Images/redPin.png"/>
+                </Button>
+
+                <Button x:Name="Pin_Button" Width="16" Height="16" Margin="10 0 0 0" Cursor="Hand" Style="{StaticResource PinStyle}" Click="PinWindow_Button">
+                    <Image x:Name="PinButton_Image" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Source="Assets/Images/grayPin.png"/>
+                </Button>
+            </StackPanel>
+                <Label Content="Synchronizator" HorizontalAlignment="Center" Padding="0" Margin="3" FontWeight="Bold"/>
             <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
+                <Button Margin="2 0 0 0" Width="24" Height="24" Cursor="Hand" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
                 <!--<Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MaximizeWindow_Click">🗖</Button>-->
-                <Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
+                <Button Margin="2 0 0 0" Width="24" Height="24" Cursor="Hand" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
             </StackPanel>
         </Grid>
 
@@ -48,7 +57,7 @@
                                 <Grid>
                                     <CheckBox HorizontalAlignment="Left" Height="16" Content="{Binding Parameter}" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
                                     <Button Width="16" Height="16" HorizontalAlignment="Right" Style="{StaticResource GearStyle}" Cursor="Hand" Click="GearButton_Click" Visibility="{Binding Show_Gear}">
-                                        <Image Width="16" Height="16" Source="Assets/Images/gear.png"/>
+                                        <Image RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Source="Assets/Images/gear.png"/>
                                     </Button>
                                 </Grid>
                             </DataTemplate>

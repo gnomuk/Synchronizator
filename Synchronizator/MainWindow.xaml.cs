@@ -6,13 +6,14 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using WindowsInput;
 using Gma.System.MouseKeyHook;
 using System.IO;
 using System.Windows.Forms;
 using WindowsInput.Native;
+using System.Windows.Media.Imaging;
+using System.Threading;
 
 
 namespace Synchronizator
@@ -25,6 +26,7 @@ namespace Synchronizator
 
         string selected_parameter = "";
         const string CONFIG_PATH = "parameters.json";
+        bool connected = false;
 
         Dictionary<string, Keys> winFormsKeycodes = new Dictionary<string, Keys>
         {
@@ -157,9 +159,6 @@ namespace Synchronizator
         public MainWindow()
         {
             InitializeComponent();
-            StartServer();
-            SubscribeToGlobalHook();
-            inputSimulator = new InputSimulator();
             this.DataContext = new ViewModel();
         }
 
@@ -182,9 +181,98 @@ namespace Synchronizator
             }
         }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { DragMove(); }
+
+        private void ConnectLocal_Button(object sender, RoutedEventArgs e)
         {
-            DragMove();
+            if (connected)
+            {
+                return;
+            }
+
+            connected = true;
+            StartServer();
+            SubscribeToGlobalHook();
+            inputSimulator = new InputSimulator();
+            ConnectButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/greenPin.png"));
+        }
+
+        private void PinWindow_Button(object sender, RoutedEventArgs e)
+        {
+            if (this.Topmost)
+            {
+                this.Topmost = false;
+                PinButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/grayPin.png"));
+                return;
+            }
+            this.Topmost = true;
+            PinButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/bluePin.png"));
+        }
+
+        private void CreateConfig()
+        {
+
+            const string CONFIG = "{\n" +
+              "  \"Ходьба\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Прыжок\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"Space\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Приседание\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"LeftCtrl\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Шифт\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"ЛКМ\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"ПКМ\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"BIND\": \"\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Переключение оружия\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainWeapon\": \"D1\",\n" +
+              "      \"SecondaryWeapon\": \"D2\",\n" +
+              "      \"Knife\": \"D3\",\n" +
+              "      \"Grenades\": \"D4\",\n" +
+              "      \"Bomb\": \"D5\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Выбросить оружие\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"G\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Взаимодействие\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"E\"\n" +
+              "    }\n" +
+              "  }\n" +
+            "}";
+            File.WriteAllText(CONFIG_PATH, CONFIG);
         }
 
         private void MinimizeWindow_Click(object sender, RoutedEventArgs e)
@@ -259,16 +347,6 @@ namespace Synchronizator
             EraseInputs();
         }
 
-        private void EraseInputs()
-        {
-            enter_keybind.Clear();
-            mainWeapon_keybind.Clear();
-            secondaryWeapon_keybind.Clear();
-            knifeWeapon_keybind.Clear();
-            grenadesWeapon_keybind.Clear();
-            bombWeapon_keybind.Clear();
-        }
-
         private void ApplyChanges_button(object sender, RoutedEventArgs e)
         {
             var viewModelConfig = new ViewModelConfiguration();
@@ -312,94 +390,24 @@ namespace Synchronizator
             viewModelConfig.SaveToJson(CONFIG_PATH);
         }
 
-        private void CreateConfig()
-        {
-
-            const string CONFIG = "{\n" +
-              "  \"Ходьба\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Прыжок\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"MainKey\": \"Space\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Приседание\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"MainKey\": \"LeftCtrl\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Шифт\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"ЛКМ\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"ПКМ\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Переключение оружия\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"MainWeapon\": \"D1\",\n" +
-              "      \"SecondaryWeapon\": \"D2\",\n" +
-              "      \"Knife\": \"D3\",\n" +
-              "      \"Grenades\": \"D4\",\n" +
-              "      \"Bomb\": \"D5\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Выбросить оружие\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"MainKey\": \"G\"\n" +
-              "    }\n" +
-              "  },\n" +
-              "  \"Взаимодействие\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"MainKey\": \"E\"\n" +
-              "    }\n" +
-              "  }\n" +
-            "}";
-            File.WriteAllText(CONFIG_PATH, CONFIG);
-        }
-
-        private void SubscribeToGlobalHook()
-        {
-            _globalHook = Hook.GlobalEvents();
-            _globalHook.KeyDown += GlobalHook_KeyDown;
-            _globalHook.MouseDown += GlobalHook_MouseDown;
-        }
-
-        private void UnsubscribeFromGlobalHook()
-        {
-            _globalHook.KeyDown -= GlobalHook_KeyDown;
-            _globalHook.MouseDown -= GlobalHook_MouseDown;
-            _globalHook.Dispose();
-        }
-
         private void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            bool lmb = false;
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
 
-            if (e.Button == MouseButtons.Left && !lmb)
+            bool lmb = false;
+            bool rmb = false;
+
+            if (e.Button == MouseButtons.Left && loadedViewModel.Parameters.Where(x => x.Key == "ЛКМ").Select(j => j.Value.Enabled).FirstOrDefault() && !lmb)
             {
                 lmb = true;
                 SendMessageToOtherComputer("Fire");
+                return;
+            }
+            if (e.Button == MouseButtons.Right && loadedViewModel.Parameters.Where(x => x.Key == "ПКМ").Select(j => j.Value.Enabled).FirstOrDefault() && !rmb)
+            {
+                rmb = true;
+                SendMessageToOtherComputer("Secondary");
                 return;
             }
         }
@@ -414,7 +422,7 @@ namespace Synchronizator
             loadedViewModel.LoadFromJson(CONFIG_PATH);
 
             //Прыжок
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !spaceIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !spaceIsPressed)
             {
                 spaceIsPressed = true;
                 SendMessageToOtherComputer("Jump");
@@ -422,7 +430,7 @@ namespace Synchronizator
             }
 
             //Выбросить оружие
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !gIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").Select(j => j.Value.Enabled).FirstOrDefault() && !gIsPressed)
             {
                 gIsPressed = true;
                 SendMessageToOtherComputer("Drop");
@@ -430,7 +438,7 @@ namespace Synchronizator
             }
 
             //Взаимодействие
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && !eIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
             {        
                 eIsPressed = true;
                 SendMessageToOtherComputer("Interact");
@@ -449,8 +457,8 @@ namespace Synchronizator
         {
             while (true)
             {
-                TcpClient client = await listener.AcceptTcpClientAsync();
-                _ = Task.Run(() => HandleClient(client));
+                    TcpClient client = await listener.AcceptTcpClientAsync();
+                    _ = Task.Run(() => HandleClient(client));
             }
         }
 
@@ -481,7 +489,11 @@ namespace Synchronizator
                         break; 
                     
                     case "Fire":
-                        PressMouseButton();
+                        PressMouseButton(true);
+                        break;
+                    
+                    case "Secondary":
+                        PressMouseButton(false);
                         break;
                 }
             }
@@ -489,14 +501,59 @@ namespace Synchronizator
 
         private async void SendMessageToOtherComputer(string message)
         {
-            using (TcpClient client = new TcpClient("26.245.20.241", 5000))
+            try
             {
-                NetworkStream stream = client.GetStream();
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                await stream.WriteAsync(data, 0, data.Length);
+                using (TcpClient client = new TcpClient())
+                {
+                    // Устанавливаем тайм-аут для подключения
+                    var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    var connectTask = client.ConnectAsync("26.245.20.241", 5000);
+
+                    // Ожидаем завершения подключения или тайм-аута
+                    await Task.WhenAny(connectTask, Task.Delay(-1, cancellationTokenSource.Token));
+
+                    if (connectTask.IsCompleted)
+                    {
+                        // Если подключение успешно
+                        using (NetworkStream stream = client.GetStream())
+                        {
+                            byte[] data = Encoding.UTF8.GetBytes(message);
+                            await stream.WriteAsync(data, 0, data.Length);
+                        }
+                    }
+                    else
+                    {
+                        // Если тайм-аут истек
+                        Console.WriteLine("Ошибка: Не удалось подключиться к серверу, тайм-аут истек.");
+                    }
+                }
+            }
+            catch (SocketException ex)
+            {
+                // Обработка ошибок сокетов
+                Console.WriteLine($"Ошибка сокета: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Обработка других ошибок
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
             }
         }
 
+        private void SubscribeToGlobalHook()
+        {
+            _globalHook = Hook.GlobalEvents();
+            _globalHook.KeyDown += GlobalHook_KeyDown;
+            _globalHook.MouseDown += GlobalHook_MouseDown;
+        }
+
+        private void UnsubscribeFromGlobalHook()
+        {
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            _globalHook.MouseDown -= GlobalHook_MouseDown;
+            _globalHook.Dispose();
+        }
+        
         private Keys GetWinFormsKeyCodeFromDictionary(string key) { return winFormsKeycodes[key]; }
 
         private VirtualKeyCode GetVirtualKeyCodeFromDictionary(string key) { return virtualKeycodes[key]; }
@@ -509,13 +566,33 @@ namespace Synchronizator
             _globalHook.KeyDown += GlobalHook_KeyDown;
         }
 
-        private void PressMouseButton()
+        private void PressMouseButton(bool left)
         {
-            _globalHook.MouseDown -= GlobalHook_MouseDown;
-            inputSimulator.Mouse.LeftButtonDown();
-            inputSimulator.Mouse.LeftButtonUp();
-            _globalHook.MouseDown += GlobalHook_MouseDown;
+            if (left)
+            {
+                _globalHook.MouseDown -= GlobalHook_MouseDown;
+                inputSimulator.Mouse.LeftButtonDown();
+                inputSimulator.Mouse.LeftButtonUp();
+                _globalHook.MouseDown += GlobalHook_MouseDown;
+            }
+            else
+            {
+                _globalHook.MouseDown -= GlobalHook_MouseDown;
+                inputSimulator.Mouse.RightButtonDown();
+                inputSimulator.Mouse.RightButtonUp();
+                _globalHook.MouseDown += GlobalHook_MouseDown;
+            }
+            
         }
 
+        private void EraseInputs()
+        {
+            enter_keybind.Clear();
+            mainWeapon_keybind.Clear();
+            secondaryWeapon_keybind.Clear();
+            knifeWeapon_keybind.Clear();
+            grenadesWeapon_keybind.Clear();
+            bombWeapon_keybind.Clear();
+        }
     }
 }
