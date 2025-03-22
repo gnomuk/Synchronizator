@@ -25,6 +25,7 @@ namespace Synchronizator
         private IKeyboardMouseEvents _globalHook;
 
         string selected_parameter = "";
+        bool isMouseSettingsSelected = false;
         const string CONFIG_PATH = "parameters.json";
         bool connected = false;
 
@@ -143,17 +144,26 @@ namespace Synchronizator
             {"RightShift", VirtualKeyCode.RSHIFT}
         };
 
+        Dictionary<string, MouseButtons> mouseKeycodes = new Dictionary<string, MouseButtons>
+        {
+            {"Left", MouseButtons.Left},
+            {"Right", MouseButtons.Right},
+            {"Middle", MouseButtons.Middle}
+        };
+
         Dictionary<string, int> parameters = new Dictionary<string, int>()
         {
-            {"Ходьба", 0},
-            {"Прыжок", 1},
-            {"Приседание", 1},
+            {"Прыжок", 1}, // Готово
+            {"Приседание", 0},
             {"Шифт", 0},
-            {"ЛКМ", 0},
-            {"ПКМ", 0},
+            {"Огонь", 1}, // Готово
+            {"Альтернативный огонь", 1}, // Готово
             {"Переключение оружия", 1},
-            {"Выбросить оружие", 1 },
-            {"Взаимодействие", 1 }
+            {"Выбросить оружие", 1 }, // Готово
+            {"Взаимодействие", 1 }, // Готово
+            {"Перезарядка", 1 },
+            {"Осмотр оружия", 1 },
+            {"Голосовой чат", 1 }
         };
 
         public MainWindow()
@@ -213,12 +223,6 @@ namespace Synchronizator
         {
 
             const string CONFIG = "{\n" +
-              "  \"Ходьба\": {\n" +
-              "    \"Enabled\": false,\n" +
-              "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
-              "    }\n" +
-              "  },\n" +
               "  \"Прыжок\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
@@ -234,19 +238,19 @@ namespace Synchronizator
               "  \"Шифт\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
+              "      \"MainKey\": \"\"\n" +
               "    }\n" +
               "  },\n" +
-              "  \"ЛКМ\": {\n" +
+              "  \"Огонь\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
+              "      \"MainKey\": \"Left\"\n" +
               "    }\n" +
               "  },\n" +
-              "  \"ПКМ\": {\n" +
+              "  \"Альтернативный огонь\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
-              "      \"BIND\": \"\"\n" +
+              "      \"MainKey\": \"Right\"\n" +
               "    }\n" +
               "  },\n" +
               "  \"Переключение оружия\": {\n" +
@@ -269,6 +273,24 @@ namespace Synchronizator
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
               "      \"MainKey\": \"E\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Перезарядка\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"R\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Осмотр оружия\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"F\"\n" +
+              "    }\n" +
+              "  },\n" +
+              "  \"Голосовой чат\": {\n" +
+              "    \"Enabled\": false,\n" +
+              "    \"Keybinds\": {\n" +
+              "      \"MainKey\": \"C\"\n" +
               "    }\n" +
               "  }\n" +
             "}";
@@ -297,10 +319,13 @@ namespace Synchronizator
             parameter_name.Content = selected_parameter;
             configurationMenu_grid.Visibility = Visibility.Visible;
 
+            if (selected_parameter == "Огонь" || selected_parameter == "Альтернативный огонь") { isMouseSettingsSelected = true; } else { isMouseSettingsSelected = false; }
+
             if (selected_parameter == "Переключение оружия")
             {
                 mainConfig_Grid.Visibility = Visibility.Hidden;
                 weaponSwap_Config_Grid.Visibility = Visibility.Visible;
+                mouseInput_Config_Grid.Visibility = Visibility.Hidden;
 
                 mainWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault();
                 secondaryWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault();
@@ -308,9 +333,17 @@ namespace Synchronizator
                 grenadesWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault();
                 bombWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault();
             }
-            else
+            else if (isMouseSettingsSelected)
+            {
+                mouse_input_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == selected_parameter).SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                mouseInput_Config_Grid.Visibility = Visibility.Visible;
+                weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
+                mainConfig_Grid.Visibility = Visibility.Hidden;
+            }
+            else 
             {
                 enter_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == selected_parameter).SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                mouseInput_Config_Grid.Visibility = Visibility.Hidden;
                 weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
                 mainConfig_Grid.Visibility = Visibility.Visible;
             }
@@ -332,13 +365,28 @@ namespace Synchronizator
             //}
         }
 
-        private void KeyInput(object sender, System.Windows.Input.KeyEventArgs e)
+        private void KeyboardInput(object sender, System.Windows.Input.KeyEventArgs e)
         {
             System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
             string key = e.Key.ToString();
             if (key == "Back") { textBox.Text = ""; return; }
-            textBox.Text = e.Key.ToString();
+            textBox.Text = key;
             e.Handled = true;
+        }
+
+        private void MouseInput(object sender, MouseButtonEventArgs e)
+        {
+            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
+            string key = e.ChangedButton.ToString();
+            textBox.Text = key;
+            e.Handled = true;
+        }
+        
+        private void MouseWheelInput(object sender, MouseWheelEventArgs e)
+        {
+            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
+            if (e.Delta > 0) { textBox.Text = "Up"; }
+            else { textBox.Text = "Down"; }
         }
 
         private void closeConfigurationMenu_button(object sender, RoutedEventArgs e)
@@ -381,7 +429,11 @@ namespace Synchronizator
                 keybinds.Add("Grenades", grenadesWeapon_keybind.Text);
                 keybinds.Add("Bomb", bombWeapon_keybind.Text);
             }
-            else
+            else if (isMouseSettingsSelected)
+            {
+                keybinds.Add("MouseButton", mouse_input_keybind.Text);
+            }
+            else 
             {
                 keybinds.Add("MainKey", enter_keybind.Text);
             }
@@ -398,19 +450,31 @@ namespace Synchronizator
             bool lmb = false;
             bool rmb = false;
 
-            if (e.Button == MouseButtons.Left && loadedViewModel.Parameters.Where(x => x.Key == "ЛКМ").Select(j => j.Value.Enabled).FirstOrDefault() && !lmb)
+            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !lmb)
             {
                 lmb = true;
                 SendMessageToOtherComputer("Fire");
                 return;
             }
-            if (e.Button == MouseButtons.Right && loadedViewModel.Parameters.Where(x => x.Key == "ПКМ").Select(j => j.Value.Enabled).FirstOrDefault() && !rmb)
+            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !rmb)
             {
                 rmb = true;
                 SendMessageToOtherComputer("Secondary");
                 return;
             }
         }
+
+        //private void GlobalHook_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        //{
+        //    if (e.Delta > 0)
+        //    { 
+                
+        //    }
+        //    else if (e.Delta < 0)
+        //    {
+                
+        //    }
+        //}
 
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
@@ -442,6 +506,30 @@ namespace Synchronizator
             {        
                 eIsPressed = true;
                 SendMessageToOtherComputer("Interact");
+                return;
+            }
+
+            //Перезарядка
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            {
+                eIsPressed = true;
+                SendMessageToOtherComputer("Reload");
+                return;
+            }
+
+            //Осмотр оружия
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            {
+                eIsPressed = true;
+                SendMessageToOtherComputer("Inspect");
+                return;
+            }
+
+            //Голосовой чат
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            {
+                eIsPressed = true;
+                SendMessageToOtherComputer("Voice");
                 return;
             }
         }
@@ -476,8 +564,10 @@ namespace Synchronizator
 
                 switch (responseData)
                 {
-                    case "Jump": 
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    case "Jump":
+                        string key = loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                        if (key == "Down" || key == "Up" || key == "Left" || key == "Right") { PressMouseButton(key); break; }
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(key));
                         break;
 
                     case "Drop":
@@ -489,11 +579,11 @@ namespace Synchronizator
                         break; 
                     
                     case "Fire":
-                        PressMouseButton(true);
+                        PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
                         break;
                     
                     case "Secondary":
-                        PressMouseButton(false);
+                        PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
                         break;
                 }
             }
@@ -507,7 +597,7 @@ namespace Synchronizator
                 {
                     // Устанавливаем тайм-аут для подключения
                     var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    var connectTask = client.ConnectAsync("26.245.20.241", 5000);
+                    var connectTask = client.ConnectAsync("26.206.192.9", 5000);
 
                     // Ожидаем завершения подключения или тайм-аута
                     await Task.WhenAny(connectTask, Task.Delay(-1, cancellationTokenSource.Token));
@@ -545,6 +635,7 @@ namespace Synchronizator
             _globalHook = Hook.GlobalEvents();
             _globalHook.KeyDown += GlobalHook_KeyDown;
             _globalHook.MouseDown += GlobalHook_MouseDown;
+            //_globalHook.MouseWheel += GlobalHook_MouseWheel;
         }
 
         private void UnsubscribeFromGlobalHook()
@@ -558,6 +649,8 @@ namespace Synchronizator
 
         private VirtualKeyCode GetVirtualKeyCodeFromDictionary(string key) { return virtualKeycodes[key]; }
 
+        private MouseButtons GetMouseButtonFromDictionary( string key) { return mouseKeycodes[key]; }
+
         private void PressKeyboardButton(VirtualKeyCode keyCode)
         {
             _globalHook.KeyDown -= GlobalHook_KeyDown;
@@ -566,23 +659,33 @@ namespace Synchronizator
             _globalHook.KeyDown += GlobalHook_KeyDown;
         }
 
-        private void PressMouseButton(bool left)
+        private void PressMouseButton(string button)
         {
-            if (left)
+            switch (button)
             {
-                _globalHook.MouseDown -= GlobalHook_MouseDown;
-                inputSimulator.Mouse.LeftButtonDown();
-                inputSimulator.Mouse.LeftButtonUp();
-                _globalHook.MouseDown += GlobalHook_MouseDown;
+                case "Left":
+                    _globalHook.MouseDown -= GlobalHook_MouseDown;
+                    inputSimulator.Mouse.LeftButtonDown();
+                    inputSimulator.Mouse.LeftButtonUp();
+                    _globalHook.MouseDown += GlobalHook_MouseDown;
+                    break;
+                case "Right":
+                    _globalHook.MouseDown -= GlobalHook_MouseDown;
+                    inputSimulator.Mouse.RightButtonDown();
+                    inputSimulator.Mouse.RightButtonUp();
+                    _globalHook.MouseDown += GlobalHook_MouseDown;
+                    break;
+                case "Up":
+                    _globalHook.MouseDown -= GlobalHook_MouseDown;
+                    inputSimulator.Mouse.VerticalScroll(1);
+                    _globalHook.MouseDown += GlobalHook_MouseDown;
+                    break;
+                case "Down":
+                    _globalHook.MouseDown -= GlobalHook_MouseDown;
+                    inputSimulator.Mouse.VerticalScroll(-1);
+                    _globalHook.MouseDown += GlobalHook_MouseDown;
+                    break;
             }
-            else
-            {
-                _globalHook.MouseDown -= GlobalHook_MouseDown;
-                inputSimulator.Mouse.RightButtonDown();
-                inputSimulator.Mouse.RightButtonUp();
-                _globalHook.MouseDown += GlobalHook_MouseDown;
-            }
-            
         }
 
         private void EraseInputs()
@@ -593,6 +696,7 @@ namespace Synchronizator
             knifeWeapon_keybind.Clear();
             grenadesWeapon_keybind.Clear();
             bombWeapon_keybind.Clear();
+            mouse_input_keybind.Clear();
         }
     }
 }

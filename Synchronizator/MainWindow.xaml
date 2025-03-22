@@ -68,7 +68,7 @@
             </Grid>
 
             <!--Configuration-->
-            <Grid Visibility="Hidden" x:Name="configurationMenu_grid" Grid.Column="1" Margin="5 0 0 0">
+            <Grid Visibility="Visible" x:Name="configurationMenu_grid" Grid.Column="1" Margin="5 0 0 0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="*"/>
@@ -79,30 +79,39 @@
 
                 <StackPanel x:Name="mainConfig_Grid" Visibility="Hidden" Orientation="Vertical" Grid.Row="1">
                     <StackPanel Orientation="Horizontal">
-                        <TextBox x:Name="enter_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="enter_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Используемая в игре клавиша" Padding="0" Margin="5 0 0 0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="mouseInput_Config_Grid" Visibility="Visible" Orientation="Vertical" Grid.Row="1">
+                    <StackPanel Visibility="Visible" Orientation="Vertical" Grid.Row="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="mouse_input_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" IsReadOnly="True" PreviewMouseDown="MouseInput" MouseWheel="MouseWheelInput"/>
+                            <Label Content="Используемая в игре кнопка мыши" Padding="0" Margin="5 0 0 0"/>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel x:Name="weaponSwap_Config_Grid" Visibility="Hidden" Orientation="Vertical" Grid.Row="1">
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
-                        <TextBox x:Name="mainWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="mainWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Основное оружие" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
-                        <TextBox x:Name="secondaryWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="secondaryWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Второстепенное оружие" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
-                        <TextBox x:Name="knifeWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="knifeWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Нож" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
-                        <TextBox x:Name="grenadesWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="grenadesWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Гранаты" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
-                        <TextBox x:Name="bombWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyInput" IsReadOnly="True"/>
+                        <TextBox x:Name="bombWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
                         <Label Content="Бомба" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                 </StackPanel>
