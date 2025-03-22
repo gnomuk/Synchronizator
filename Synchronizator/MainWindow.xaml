@@ -32,7 +32,6 @@
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Source="Assets/Images/gear.png"/>
                 </Button>
                 <Button Margin="2 0 0 0" Width="24" Height="24" Cursor="Hand" Style="{StaticResource WindowTitleStyle}" Click="MinimizeWindow_Click">_</Button>
-                <!--<Button Margin="2 0 0 0" Width="24" Height="24" Style="{StaticResource WindowTitleStyle}" Click="MaximizeWindow_Click">🗖</Button>-->
                 <Button Margin="2 0 0 0" Width="24" Height="24" Cursor="Hand" Style="{StaticResource WindowTitleStyle}" Click="CloseWindow_Click">✕</Button>
             </StackPanel>
         </Grid>
@@ -83,10 +82,10 @@
                 <Grid x:Name="settings_Grid" Visibility="Hidden" Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="130"/>
-                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="50"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Grid.RowSpan="2" BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
+                    <Border Grid.RowSpan="1" BorderThickness="1" BorderBrush="#FFC8C8C8"></Border>
                     <Grid>
                         <ListView ItemsSource="{Binding IPAdresses}" Style="{StaticResource ListViewStyle}" ItemContainerStyle="{StaticResource SettingsLVContainerStyle}" Grid.Row="1" Margin="2" d:ItemsSource="{d:SampleData ItemCount=5}">
                             <ListView.ItemTemplate>
@@ -107,11 +106,23 @@
 
                     <Grid Grid.Row="1">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="5"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBox x:Name="IPAddress_TextBox" BorderBrush="#FFC8C8C8" Background="Transparent" Grid.Row="0"/>
-                        <Button Content="Добавить адрес" BorderBrush="#FFC8C8C8" Grid.Row="1" Click="AddIPAdress_Button"/>
+                        
+                        <TextBox x:Name="IPAddress_TextBox" BorderBrush="#FFC8C8C8" Background="Transparent" Grid.Row="1"/>
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Content="Обн." Margin="0 0 2.5 0" Grid.Column="0" BorderBrush="#FFC8C8C8" Click="AddIPAdress_Button"/>
+                            <Button Content="Добавить адрес" Margin="2.5 0 0 0" Grid.Column="1" BorderBrush="#FFC8C8C8" Click="AddIPAdress_Button"/>
+                        </Grid>
+
                     </Grid>
                 </Grid>
 

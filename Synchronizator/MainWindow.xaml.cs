@@ -13,15 +13,20 @@ using System.IO;
 using System.Windows.Forms;
 using WindowsInput.Native;
 using System.Windows.Media.Imaging;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace Synchronizator
 {
     public partial class MainWindow : Window
     {
         private UdpClient udpListener;
+        private UdpClient udpSender;
         private InputSimulator inputSimulator;
         private IKeyboardMouseEvents _globalHook;
+        private IKeyboardMouseEvents _globalHookSettings;
         private DateTime lastSendTime = DateTime.MinValue;
+        Task UDPListenerTask = null;
 
         private readonly object sendLock = new object();
 
@@ -204,6 +209,8 @@ namespace Synchronizator
                     viewModel.AddItem(ipAddress, new BitmapImage(new Uri("pack://application:,,,/Assets/Images/grayPin.png")));
                 }
             }
+            _globalHookSettings = Hook.GlobalEvents();
+            _globalHookSettings.KeyDown += GlobalHook_KeyDownSettings;
         }
 
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { DragMove(); }
@@ -212,14 +219,10 @@ namespace Synchronizator
         {
             if (connected)
             {
+                StopServer();
                 return;
             }
-
-            connected = true;
             StartServer();
-            SubscribeToGlobalHook();
-            inputSimulator = new InputSimulator();
-            ConnectButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/greenPin.png"));
         }
 
         private void PinWindow_Button(object sender, RoutedEventArgs e)
@@ -644,10 +647,58 @@ namespace Synchronizator
             }
         }
 
+        private void GlobalHook_KeyDownSettings(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            var waveOut = new WaveOutEvent();
+            var connectSignal = new SignalGenerator()
+            {
+                Gain = 0.2, // Громкость
+                Frequency = 440, // Частота (в Гц)
+                Type = SignalGeneratorType.Sin // Тип сигнала (синусоидальный)
+            }.Take(TimeSpan.FromSeconds(0.3));
+
+            var disconnectSignal = new SignalGenerator()
+            {
+                Gain = 0.2, // Громкость
+                Frequency = 840, // Частота (в Гц)
+                Type = SignalGeneratorType.Sin // Тип сигнала (синусоидальный)
+            }.Take(TimeSpan.FromSeconds(0.3));
+
+
+            if (e.KeyCode == Keys.F6 && connected)
+            {
+                waveOut.Init(connectSignal);
+                waveOut.Play();
+                StopServer();
+                
+            }
+            else if (e.KeyCode == Keys.F6 && !connected)
+            {
+                waveOut.Init(disconnectSignal);
+                waveOut.Play();
+                StartServer();
+            }
+        }
+
         private void StartServer()
         {
-            udpListener = new UdpClient(5000);
-            Task.Run(() => ListenForMessages());
+            SubscribeToGlobalHook();
+            inputSimulator = new InputSimulator();
+            udpListener = new UdpClient(58330);
+            udpSender = new UdpClient(58331);
+            UDPListenerTask = Task.Run(() => ListenForMessages());
+            connected = true;
+            ConnectButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/greenPin.png"));
+        }
+
+        private void StopServer()
+        {
+            UnsubscribeFromGlobalHook();
+            udpListener.Close();
+            udpSender.Close();
+            UDPListenerTask.Dispose();
+            connected = false;
+            ConnectButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/redPin.png"));
         }
 
         private async void ListenForMessages()
@@ -770,25 +821,24 @@ namespace Synchronizator
 
         private async Task SendMessageToOtherComputer(string ipAddress, string message)
         {
-            lock (sendLock)
-            {
-                // Проверяем, прошло ли 100 миллисекунд с последней отправки
-                if ((message != "FireU" && message != "ShiftU" && message != "CtrlU"))
-                {
-                    if ((DateTime.Now - lastSendTime).TotalMilliseconds < 100) { return; }
-                    lastSendTime = DateTime.Now;
-                }
-            }
+            //lock (sendLock)
+            //{
+            //    //Проверяем, прошло ли 100 миллисекунд с последней отправки
+            //    if ((message != "FireU" && message != "ShiftU" && message != "CtrlU"))
+            //    {
+            //        if ((DateTime.Now - lastSendTime).TotalMilliseconds < 100) { return; }
+            //        lastSendTime = DateTime.Now;
+            //    }
+            //}
 
             try
             {
-                var endpoint = new IPEndPoint(IPAddress.Parse(ipAddress), 5000);
+                var endpoint = new IPEndPoint(IPAddress.Parse(ipAddress), 58330);
                 byte[] data = Encoding.UTF8.GetBytes(message);
-                await udpListener.SendAsync(data, data.Length, endpoint);
+                await udpSender.SendAsync(data, data.Length, endpoint);
             }
             catch (Exception ex)
             {
-                // Обработка исключений
                 Console.WriteLine($"Error sending message to {ipAddress}: {ex.Message}");
             }
         }
@@ -807,6 +857,8 @@ namespace Synchronizator
         {
             _globalHook.KeyDown -= GlobalHook_KeyDown;
             _globalHook.MouseDown -= GlobalHook_MouseDown;
+            _globalHook.MouseUp -= GlobalHook_MouseUp;
+            _globalHook.KeyUp -= GlobalHook_KeyUp;
             _globalHook.Dispose();
         }
         
