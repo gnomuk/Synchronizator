@@ -246,6 +246,7 @@ namespace Synchronizator
             viewModel.IsMonitoring = true;
             configurationMenu_grid.Visibility = Visibility.Visible;
             settings_Grid.Visibility = Visibility.Visible;
+            saveConfig_Button.Visibility = Visibility.Hidden;
         }
 
         private void CreateConfig()
@@ -267,7 +268,7 @@ namespace Synchronizator
               "  \"Медленная ходьба\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
-              "      \"MainKey\": \"\"\n" +
+              "      \"MainKey\": \"LeftShift\"\n" +
               "    }\n" +
               "  },\n" +
               "  \"Огонь\": {\n" +
@@ -924,6 +925,7 @@ namespace Synchronizator
             mainConfig_Grid.Visibility= Visibility.Hidden;
             mouseInput_Config_Grid.Visibility = Visibility.Hidden;
             weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
+            saveConfig_Button.Visibility = Visibility.Visible;
         }
 
         static bool IsValidIPAddress(string ip)
