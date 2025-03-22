@@ -8,6 +8,7 @@
         <!--WindowTitle-->
         <Style TargetType="{x:Type Button}" x:Key="WindowTitleStyle">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -27,6 +28,7 @@
         <!--Pin-->
         <Style TargetType="{x:Type Button}" x:Key="PinStyle">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -46,6 +48,7 @@
         <!--Gear-->
         <Style TargetType="{x:Type Button}" x:Key="GearStyle">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -82,7 +85,8 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        
+        <!--ItemContainerStyle-->
         <Style x:Key="MyItemContainerStyle" TargetType="ListViewItem">
             <Setter Property="Margin" Value="2"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -102,6 +106,27 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
+        <!--ItemContainerStyle-->
+        <Style x:Key="SettingsLVContainerStyle" TargetType="ListViewItem">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                        <Border x:Name="brd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#19000000"/>
+                                <Setter Property="BorderBrush" Value="Black"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Application.Resources>
 </Application>

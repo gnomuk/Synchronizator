@@ -1,11 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Windows;
-
 public class LVItemSource_Class : INotifyPropertyChanged
 {
     private bool _isChecked;
-
-
     public string Parameter { get; set; }
     public Visibility Show_Gear { get; set; }
     public bool IsChecked

@@ -14,6 +14,8 @@ using System.Windows.Forms;
 using WindowsInput.Native;
 using System.Windows.Media.Imaging;
 using System.Threading;
+using System.Windows.Controls;
+using System.Net.NetworkInformation;
 
 
 namespace Synchronizator
@@ -29,7 +31,9 @@ namespace Synchronizator
 
         string selected_parameter = "";
         bool isMouseSettingsSelected = false;
-        const string CONFIG_PATH = "parameters.json";
+        readonly string MYDIRECTORY = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}/Synchronizator";
+        readonly string CONFIG_PATH = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}/Synchronizator/parameters.json";
+        readonly string IPADDRESS_PATH = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}/Synchronizator/ips.txt";
         bool connected = false;
 
         Dictionary<string, Keys> winFormsKeycodes = new Dictionary<string, Keys>
@@ -91,16 +95,16 @@ namespace Synchronizator
 
         Dictionary<string, VirtualKeyCode> virtualKeycodes = new Dictionary<string, VirtualKeyCode>
         {
-            {"0", VirtualKeyCode.VK_0},
-            {"1", VirtualKeyCode.VK_1},
-            {"2", VirtualKeyCode.VK_2},
-            {"3", VirtualKeyCode.VK_3},
-            {"4", VirtualKeyCode.VK_4},
-            {"5", VirtualKeyCode.VK_5},
-            {"6", VirtualKeyCode.VK_6},
-            {"7", VirtualKeyCode.VK_7},
-            {"8", VirtualKeyCode.VK_8},
-            {"9", VirtualKeyCode.VK_9},
+            {"D0", VirtualKeyCode.VK_0},
+            {"D1", VirtualKeyCode.VK_1},
+            {"D2", VirtualKeyCode.VK_2},
+            {"D3", VirtualKeyCode.VK_3},
+            {"D4", VirtualKeyCode.VK_4},
+            {"D5", VirtualKeyCode.VK_5},
+            {"D6", VirtualKeyCode.VK_6},
+            {"D7", VirtualKeyCode.VK_7},
+            {"D8", VirtualKeyCode.VK_8},
+            {"D9", VirtualKeyCode.VK_9},
             {"A", VirtualKeyCode.VK_A},
             {"B", VirtualKeyCode.VK_B},
             {"C", VirtualKeyCode.VK_C},
@@ -157,16 +161,16 @@ namespace Synchronizator
         Dictionary<string, int> parameters = new Dictionary<string, int>()
         {
             {"Прыжок", 1}, // Готово
-            {"Приседание", 0},
-            {"Шифт", 0},
+            {"Приседание", 1},
+            {"Медленная ходьба", 1}, // Готово
             {"Огонь", 1}, // Готово
             {"Альтернативный огонь", 1}, // Готово
-            {"Переключение оружия", 1},
+            {"Переключение оружия", 1}, // Готово
             {"Выбросить оружие", 1 }, // Готово
             {"Взаимодействие", 1 }, // Готово
-            {"Перезарядка", 1 },
-            {"Осмотр оружия", 1 },
-            {"Голосовой чат", 1 }
+            {"Перезарядка", 1 }, // Готово
+            {"Осмотр оружия", 1 }, // Готово
+            {"Голосовой чат", 1 } // Готово
         };
 
         public MainWindow()
@@ -191,6 +195,18 @@ namespace Synchronizator
                 var keybindsLoaded = parameter.Value.Keybinds;
 
                 viewModel.AddItem(parameterName, Convert.ToBoolean(parameters[parameterName]), enabled);
+            }
+
+            if (File.Exists(IPADDRESS_PATH))
+            {
+                var ipAddresses = File.ReadAllLines(IPADDRESS_PATH);
+                viewModel.IPAdresses.Clear(); // Очищаем коллекцию перед загрузкой новых данных
+
+                foreach (var ipAddress in ipAddresses)
+                {
+                    // Добавляем IP-адрес в коллекцию
+                    viewModel.AddItem(ipAddress, new BitmapImage(new Uri("pack://application:,,,/Assets/Images/grayPin.png")));
+                }
             }
         }
 
@@ -222,9 +238,18 @@ namespace Synchronizator
             PinButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/bluePin.png"));
         }
 
+        private void SettingsWindow_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            parameter_name.Content = "Список IP-адресов";
+            HideAllBodyWindows();
+            viewModel.IsMonitoring = true;
+            settings_Grid.Visibility = Visibility.Visible;
+        }
+
         private void CreateConfig()
         {
-
+            if (!Directory.Exists(MYDIRECTORY)) { Directory.CreateDirectory(MYDIRECTORY); }
             const string CONFIG = "{\n" +
               "  \"Прыжок\": {\n" +
               "    \"Enabled\": false,\n" +
@@ -238,7 +263,7 @@ namespace Synchronizator
               "      \"MainKey\": \"LeftCtrl\"\n" +
               "    }\n" +
               "  },\n" +
-              "  \"Шифт\": {\n" +
+              "  \"Медленная ходьба\": {\n" +
               "    \"Enabled\": false,\n" +
               "    \"Keybinds\": {\n" +
               "      \"MainKey\": \"\"\n" +
@@ -326,9 +351,8 @@ namespace Synchronizator
 
             if (selected_parameter == "Переключение оружия")
             {
-                mainConfig_Grid.Visibility = Visibility.Hidden;
+                HideAllBodyWindows();
                 weaponSwap_Config_Grid.Visibility = Visibility.Visible;
-                mouseInput_Config_Grid.Visibility = Visibility.Hidden;
 
                 mainWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault();
                 secondaryWeapon_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault();
@@ -339,15 +363,13 @@ namespace Synchronizator
             else if (isMouseSettingsSelected)
             {
                 mouse_input_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == selected_parameter).SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                HideAllBodyWindows();
                 mouseInput_Config_Grid.Visibility = Visibility.Visible;
-                weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
-                mainConfig_Grid.Visibility = Visibility.Hidden;
             }
             else 
             {
                 enter_keybind.Text = loadedViewModel.Parameters.Where(x => x.Key == selected_parameter).SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
-                mouseInput_Config_Grid.Visibility = Visibility.Hidden;
-                weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
+                HideAllBodyWindows();
                 mainConfig_Grid.Visibility = Visibility.Visible;
             }
         }
@@ -379,6 +401,7 @@ namespace Synchronizator
         private void closeConfigurationMenu_button(object sender, RoutedEventArgs e)
         {
             configurationMenu_grid.Visibility = Visibility.Hidden;
+            HideAllBodyWindows();
             EraseInputs();
         }
 
@@ -429,24 +452,51 @@ namespace Synchronizator
             viewModelConfig.SaveToJson(CONFIG_PATH);
         }
 
+        private void AddIPAdress_Button(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+
+            string IPAddress = IPAddress_TextBox.Text;
+            if (IsValidIPAddress(IPAddress))
+            {
+                viewModel.AddItem(IPAddress, new BitmapImage(new Uri("pack://application:,,,/Assets/Images/grayPin.png")));
+                viewModel.SaveIPAdresses(IPADDRESS_PATH);
+                IPAddress_TextBox.Clear();
+            }
+        }
+
         private void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
 
-            bool lmb = false;
-            bool rmb = false;
+            bool buttonIsPressed = false;
 
-            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !lmb)
+            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                lmb = true;
-                SendMessageToOtherComputer("Fire");
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("FireD");
                 return;
             }
-            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !rmb)
+            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                rmb = true;
-                SendMessageToOtherComputer("Secondary");
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("Secondary");
+                return;
+            }
+        }
+
+        private void GlobalHook_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            bool buttonIsPressed = false;
+
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
+
+            if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("FireU");
                 return;
             }
         }
@@ -455,11 +505,11 @@ namespace Synchronizator
         //{
         //    if (e.Delta > 0)
         //    { 
-                
+
         //    }
         //    else if (e.Delta < 0)
         //    {
-                
+
         //    }
         //}
 
@@ -470,11 +520,26 @@ namespace Synchronizator
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
 
+            //Медленная ходьба
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("ShiftD");
+                return;
+            }
+            //Приседание
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Приседание").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("CtrlD");
+                return;
+            }
+
             //Прыжок
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Jump");
+                SendMessageToMultipleComputers("Jump");
                 return;
             }
 
@@ -482,7 +547,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Drop");
+                SendMessageToMultipleComputers("Drop");
                 return;
             }
 
@@ -490,7 +555,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Interact");
+                SendMessageToMultipleComputers("Interact");
                 return;
             }
 
@@ -498,7 +563,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Reload");
+                SendMessageToMultipleComputers("Reload");
                 return;
             }
 
@@ -506,7 +571,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Inspect");
+                SendMessageToMultipleComputers("Inspect");
                 return;
             }
 
@@ -514,7 +579,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToOtherComputer("Voice");
+                SendMessageToMultipleComputers("Voice");
                 return;
             }
 
@@ -525,37 +590,59 @@ namespace Synchronizator
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToOtherComputer("MainWeapon");
+                    SendMessageToMultipleComputers("MainWeapon");
                     return;
                 }
                 //Пистолет
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToOtherComputer("SecondaryWeapon");
+                    SendMessageToMultipleComputers("SecondaryWeapon");
                     return;
                 }
                 // Нож
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToOtherComputer("Knife");
+                    SendMessageToMultipleComputers("Knife");
                     return;
                 }
                 // Гранаты
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToOtherComputer("Grenades");
+                    SendMessageToMultipleComputers("Grenades");
                     return;
                 }
                 //Бомба
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToOtherComputer("Bomb");
+                    SendMessageToMultipleComputers("Bomb");
                     return;
                 }
+            }
+        }
+
+        private void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
+
+            bool buttonIsPressed = false;
+            //Медленная ходьба
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("ShiftU");
+                return;
+            }
+            //Приседание
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Приседание").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                SendMessageToMultipleComputers("CtrlU");
+                return;
             }
         }
 
@@ -589,6 +676,30 @@ namespace Synchronizator
 
                 switch (responseData)
                 {
+                        //Медленная ходьба
+                    case "ShiftD":
+                        KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+                    case "ShiftU":
+                        KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+
+                        //Приседание
+                    case "CtrlD":
+                        KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+                    case "CtrlU":
+                        KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+
+                        //Огонь
+                    case "FireD":
+                        MouseButtonDown();
+                        break;
+                    case "FireU":
+                        MouseButtonUp();
+                        break;
+
                         //Прыжок
                     case "Jump":
                         string key = loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
@@ -604,14 +715,9 @@ namespace Synchronizator
                         //Осмотр оружия
                     case "Interact":
                         PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break; 
-                    
-                        //ЛКМ
-                    case "Fire":
-                        PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
                         break;
-                    
-                        //ПКМ
+
+                        //Альтернативный огонь
                     case "Secondary":
                         PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
                         break;
@@ -651,13 +757,25 @@ namespace Synchronizator
             }
         }
 
-        private async void SendMessageToOtherComputer(string message)
+        private async Task SendMessageToMultipleComputers(string message)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            foreach (var address in viewModel.IPAdresses.Select(item => item.IPAddress).ToList())
+            {
+                await SendMessageToOtherComputer(message, address);
+            }
+        }
+
+        private async Task SendMessageToOtherComputer(string message, string ipAddress)
         {
             lock (sendLock)
             {
                 // Проверяем, прошло ли 100 миллисекунд с последней отправки
-                if ((DateTime.Now - lastSendTime).TotalMilliseconds < 100) { return; }
-                lastSendTime = DateTime.Now;
+                if ((message != "FireU" && message != "ShiftU" && message != "CtrlU"))
+                {
+                    if ((DateTime.Now - lastSendTime).TotalMilliseconds < 100) { return; }
+                    lastSendTime = DateTime.Now;
+                }
             }
 
             try
@@ -666,7 +784,7 @@ namespace Synchronizator
                 {
                     // Устанавливаем тайм-аут для подключения
                     var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    var connectTask = client.ConnectAsync("26.245.20.241", 5000);
+                    var connectTask = client.ConnectAsync(ipAddress, 5000);
 
                     // Ожидаем завершения подключения или тайм-аута
                     await Task.WhenAny(connectTask, Task.Delay(-1, cancellationTokenSource.Token));
@@ -704,6 +822,8 @@ namespace Synchronizator
             _globalHook = Hook.GlobalEvents();
             _globalHook.KeyDown += GlobalHook_KeyDown;
             _globalHook.MouseDown += GlobalHook_MouseDown;
+            _globalHook.MouseUp += GlobalHook_MouseUp;
+            _globalHook.KeyUp += GlobalHook_KeyUp;
             //_globalHook.MouseWheel += GlobalHook_MouseWheel;
         }
 
@@ -717,8 +837,8 @@ namespace Synchronizator
         private Keys GetWinFormsKeyCodeFromDictionary(string key) { return winFormsKeycodes[key]; }
 
         private VirtualKeyCode GetVirtualKeyCodeFromDictionary(string key) { return virtualKeycodes[key]; }
-
-        private MouseButtons GetMouseButtonFromDictionary( string key) { return mouseKeycodes[key]; }
+        
+        private MouseButtons GetMouseButtonFromDictionary(string key) { return mouseKeycodes[key]; }
 
         private void PressKeyboardButton(VirtualKeyCode keyCode)
         {
@@ -726,6 +846,42 @@ namespace Synchronizator
             inputSimulator.Keyboard.KeyDown(keyCode);
             inputSimulator.Keyboard.KeyUp(keyCode);
             _globalHook.KeyDown += GlobalHook_KeyDown;
+        }
+
+        private void KeyboardButtonDown(VirtualKeyCode keyCode)
+        {
+            _globalHook.KeyUp -= GlobalHook_KeyUp;
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            inputSimulator.Keyboard.KeyDown(keyCode);
+            _globalHook.KeyDown += GlobalHook_KeyDown;
+            _globalHook.KeyUp += GlobalHook_KeyUp;
+        }
+        
+        private void KeyboardButtonUp(VirtualKeyCode keyCode)
+        {
+            _globalHook.KeyUp -= GlobalHook_KeyUp;
+            _globalHook.KeyDown -= GlobalHook_KeyDown;
+            inputSimulator.Keyboard.KeyUp(keyCode);
+            _globalHook.KeyDown += GlobalHook_KeyDown;
+            _globalHook.KeyUp += GlobalHook_KeyUp;
+        }
+
+        private void MouseButtonDown()
+        {
+            _globalHook.MouseDown -= GlobalHook_MouseDown;
+            _globalHook.MouseUp -= GlobalHook_MouseUp;
+            inputSimulator.Mouse.LeftButtonDown();
+            _globalHook.MouseDown += GlobalHook_MouseDown;
+            _globalHook.MouseUp += GlobalHook_MouseUp;
+        }
+
+        private void MouseButtonUp()
+        {
+            _globalHook.MouseDown -= GlobalHook_MouseDown;
+            _globalHook.MouseUp -= GlobalHook_MouseUp;
+            inputSimulator.Mouse.LeftButtonUp();
+            _globalHook.MouseDown += GlobalHook_MouseDown;
+            _globalHook.MouseUp += GlobalHook_MouseUp;
         }
 
         private void PressMouseButton(string button)
@@ -766,6 +922,31 @@ namespace Synchronizator
             grenadesWeapon_keybind.Clear();
             bombWeapon_keybind.Clear();
             mouse_input_keybind.Clear();
+        }
+
+        private void HideAllBodyWindows()
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            viewModel.IsMonitoring = false;
+            settings_Grid.Visibility = Visibility.Hidden;
+            mainConfig_Grid.Visibility= Visibility.Hidden;
+            mouseInput_Config_Grid.Visibility = Visibility.Hidden;
+            weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
+        }
+
+        static bool IsValidIPAddress(string ip)
+        {
+            return IPAddress.TryParse(ip, out _);
+        }
+
+        private void DeleteIPAddress_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = this.DataContext as ViewModel;
+            var button = sender as System.Windows.Controls.Button;
+            var item = button.DataContext as Settings_ItemSource_Class;
+            viewModel.DeleteIPAddress(item);
+
+            viewModel.SaveIPAdresses(IPADDRESS_PATH);
         }
     }
 }
