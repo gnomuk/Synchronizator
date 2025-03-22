@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows;   
 using System.Windows.Input;
 using WindowsInput;
 using Gma.System.MouseKeyHook;
@@ -13,16 +13,12 @@ using System.IO;
 using System.Windows.Forms;
 using WindowsInput.Native;
 using System.Windows.Media.Imaging;
-using System.Threading;
-using System.Windows.Controls;
-using System.Net.NetworkInformation;
-
 
 namespace Synchronizator
 {
     public partial class MainWindow : Window
     {
-        private TcpListener listener;
+        private UdpClient udpListener;
         private InputSimulator inputSimulator;
         private IKeyboardMouseEvents _globalHook;
         private DateTime lastSendTime = DateTime.MinValue;
@@ -650,8 +646,7 @@ namespace Synchronizator
 
         private void StartServer()
         {
-            listener = new TcpListener(IPAddress.Any, 5000);
-            listener.Start();
+            udpListener = new UdpClient(5000);
             Task.Run(() => ListenForMessages());
         }
 
@@ -659,111 +654,112 @@ namespace Synchronizator
         {
             while (true)
             {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    _ = Task.Run(() => HandleClient(client));
+                try
+                {
+                    var result = await udpListener.ReceiveAsync();
+                    string message = Encoding.UTF8.GetString(result.Buffer);
+                    HandleMessage(message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error receiving message: {ex.Message}");
+                    break;
+                }
             }
         }
 
-        private async Task HandleClient(TcpClient client)
+        private void HandleMessage(string message)
         {
-            using (client)    
+            var loadedViewModel = new ViewModelConfiguration();
+            loadedViewModel.LoadFromJson(CONFIG_PATH);
+
+            switch (message)
             {
-                NetworkStream stream = client.GetStream();
-                byte[] data = new byte[256];
-                int bytes = await stream.ReadAsync(data, 0, data.Length);
-                string responseData = Encoding.UTF8.GetString(data, 0, bytes);
+                    //Медленная ходьба
+                case "ShiftD":
+                    KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
+                case "ShiftU":
+                    KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
 
-                var loadedViewModel = new ViewModelConfiguration();
-                loadedViewModel.LoadFromJson(CONFIG_PATH);
+                    //Приседание
+                case "CtrlD":
+                    KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
+                case "CtrlU":
+                    KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
 
-                switch (responseData)
-                {
-                        //Медленная ходьба
-                    case "ShiftD":
-                        KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
-                    case "ShiftU":
-                        KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Огонь
+                case "FireD":
+                    MouseButtonDown();
+                    break;
+                case "FireU":
+                    MouseButtonUp();
+                    break;
 
-                        //Приседание
-                    case "CtrlD":
-                        KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
-                    case "CtrlU":
-                        KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Прыжок
+                case "Jump":
+                    string key = loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
+                    if (key == "Down" || key == "Up" || key == "Left" || key == "Right") { PressMouseButton(key); break; }
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(key));
+                    break;
 
-                        //Огонь
-                    case "FireD":
-                        MouseButtonDown();
-                        break;
-                    case "FireU":
-                        MouseButtonUp();
-                        break;
-
-                        //Прыжок
-                    case "Jump":
-                        string key = loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
-                        if (key == "Down" || key == "Up" || key == "Left" || key == "Right") { PressMouseButton(key); break; }
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(key));
-                        break;
-
-                        //Выбросить оружие
-                    case "Drop":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Выбросить оружие
+                case "Drop":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
                         
-                        //Осмотр оружия
-                    case "Interact":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Осмотр оружия
+                case "Interact":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
 
-                        //Альтернативный огонь
-                    case "Secondary":
-                        PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
-                        break;
+                    //Альтернативный огонь
+                case "Secondary":
+                    PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
+                    break;
                     
-                        //Перезарядка
-                    case "Reload":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Перезарядка
+                case "Reload":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
 
-                        //Осмотр оружия
-                    case "Inspect":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Осмотр оружия
+                case "Inspect":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
 
-                        //Голосовой чат
-                    case "Voice":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                        break;
+                    //Голосовой чат
+                case "Voice":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
                     
-                        //Переключение оружия
-                    case "MainWeapon":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()));
-                        break;
-                    case "SecondaryWeapon":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()));
-                        break;
-                    case "Knife":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault())); 
-                        break;
-                    case "Grenades":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault())); 
-                        break;
-                    case "Bomb":
-                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()));
-                        break;
-                }
+                    //Переключение оружия
+                case "MainWeapon":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()));
+                    break;
+                case "SecondaryWeapon":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()));
+                    break;
+                case "Knife":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault())); 
+                    break;
+                case "Grenades":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault())); 
+                    break;
+                case "Bomb":
+                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()));
+                    break;
             }
         }
 
         private async Task SendMessageToMultipleComputers(string message)
         {
-            List<Task> tasks = new List<Task>();
             var viewModel = (ViewModel)this.DataContext;
 
+            List<Task> tasks = new List<Task>();
             foreach (var ip in viewModel.IPAdresses.Select(item => item.IPAddress).ToList())
             {
                 tasks.Add(SendMessageToOtherComputer(ip, message));
@@ -786,22 +782,9 @@ namespace Synchronizator
 
             try
             {
-                using (TcpClient client = new TcpClient())
-                {
-                    var connectTask = client.ConnectAsync(ipAddress, 5000);
-                    if (await Task.WhenAny(connectTask, Task.Delay(5000)) == connectTask) // 5 секунд таймаут
-                    {
-                        using (NetworkStream stream = client.GetStream())
-                        {
-                            byte[] data = Encoding.UTF8.GetBytes(message);
-                            await stream.WriteAsync(data, 0, data.Length);
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Connection to {ipAddress} timed out.");
-                    }
-                }
+                var endpoint = new IPEndPoint(IPAddress.Parse(ipAddress), 5000);
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                await udpListener.SendAsync(data, data.Length, endpoint);
             }
             catch (Exception ex)
             {
