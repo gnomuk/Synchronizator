@@ -100,7 +100,7 @@
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
                         <TextBox x:Name="secondaryWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>
-                        <Label Content="Второстепенное оружие" Padding="0" Margin="5 0 0 0"/>
+                        <Label Content="Пистолет" Padding="0" Margin="5 0 0 0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 0 0 5">
                         <TextBox x:Name="knifeWeapon_keybind" TextAlignment="Center" Width="60" Height="20" MaxLength="1" MaxLines="1" PreviewKeyDown="KeyboardInput" IsReadOnly="True"/>

@@ -23,6 +23,9 @@ namespace Synchronizator
         private TcpListener listener;
         private InputSimulator inputSimulator;
         private IKeyboardMouseEvents _globalHook;
+        private DateTime lastSendTime = DateTime.MinValue;
+
+        private readonly object sendLock = new object();
 
         string selected_parameter = "";
         bool isMouseSettingsSelected = false;
@@ -347,22 +350,6 @@ namespace Synchronizator
                 weaponSwap_Config_Grid.Visibility = Visibility.Hidden;
                 mainConfig_Grid.Visibility = Visibility.Visible;
             }
-
-
-
-
-            //if (item != null)
-            //{
-            //    // Получаем ItemsSource из ListView
-            //    var listView = FindParent<ListView>(button);
-            //    var itemsSource = listView.ItemsSource as IList;
-
-            //    // Находим индекс элемента
-            //    int index = itemsSource.IndexOf(item);
-
-            //    // Здесь вы можете выполнять нужные действия с индексом
-            //    MessageBox.Show($"Кнопка нажата для элемента с индексом: {index}");
-            //}
         }
 
         private void KeyboardInput(object sender, System.Windows.Input.KeyEventArgs e)
@@ -478,59 +465,97 @@ namespace Synchronizator
 
         private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            bool spaceIsPressed = false;
-            bool gIsPressed = false;
-            bool eIsPressed = false;
+            bool buttonIsPressed = false;
 
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
 
             //Прыжок
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !spaceIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                spaceIsPressed = true;
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Jump");
                 return;
             }
 
             //Выбросить оружие
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").Select(j => j.Value.Enabled).FirstOrDefault() && !gIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                gIsPressed = true;
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Drop");
                 return;
             }
 
             //Взаимодействие
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
-            {        
-                eIsPressed = true;
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Interact");
                 return;
             }
 
             //Перезарядка
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                eIsPressed = true;
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Reload");
                 return;
             }
 
             //Осмотр оружия
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                eIsPressed = true;
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Inspect");
                 return;
             }
 
             //Голосовой чат
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !eIsPressed)
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
-                eIsPressed = true;
+                buttonIsPressed = true;
                 SendMessageToOtherComputer("Voice");
                 return;
+            }
+
+            //Переключение оружия 
+            if (loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").Select(j => j.Value.Enabled).FirstOrDefault())
+            {
+                //Основное оружие
+                if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
+                {
+                    buttonIsPressed = true;
+                    SendMessageToOtherComputer("MainWeapon");
+                    return;
+                }
+                //Пистолет
+                if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
+                {
+                    buttonIsPressed = true;
+                    SendMessageToOtherComputer("SecondaryWeapon");
+                    return;
+                }
+                // Нож
+                if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
+                {
+                    buttonIsPressed = true;
+                    SendMessageToOtherComputer("Knife");
+                    return;
+                }
+                // Гранаты
+                if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
+                {
+                    buttonIsPressed = true;
+                    SendMessageToOtherComputer("Grenades");
+                    return;
+                }
+                //Бомба
+                if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
+                {
+                    buttonIsPressed = true;
+                    SendMessageToOtherComputer("Bomb");
+                    return;
+                }
             }
         }
 
@@ -564,26 +589,63 @@ namespace Synchronizator
 
                 switch (responseData)
                 {
+                        //Прыжок
                     case "Jump":
                         string key = loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault();
                         if (key == "Down" || key == "Up" || key == "Left" || key == "Right") { PressMouseButton(key); break; }
                         PressKeyboardButton(GetVirtualKeyCodeFromDictionary(key));
                         break;
 
+                        //Выбросить оружие
                     case "Drop":
                         PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break;
-
+                        
+                        //Осмотр оружия
                     case "Interact":
                         PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                         break; 
                     
+                        //ЛКМ
                     case "Fire":
                         PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
                         break;
                     
+                        //ПКМ
                     case "Secondary":
                         PressMouseButton(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault());
+                        break;
+                    
+                        //Перезарядка
+                    case "Reload":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+
+                        //Осмотр оружия
+                    case "Inspect":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+
+                        //Голосовой чат
+                    case "Voice":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                        break;
+                    
+                        //Переключение оружия
+                    case "MainWeapon":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()));
+                        break;
+                    case "SecondaryWeapon":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()));
+                        break;
+                    case "Knife":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault())); 
+                        break;
+                    case "Grenades":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault())); 
+                        break;
+                    case "Bomb":
+                        PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()));
                         break;
                 }
             }
@@ -591,13 +653,20 @@ namespace Synchronizator
 
         private async void SendMessageToOtherComputer(string message)
         {
+            lock (sendLock)
+            {
+                // Проверяем, прошло ли 100 миллисекунд с последней отправки
+                if ((DateTime.Now - lastSendTime).TotalMilliseconds < 100) { return; }
+                lastSendTime = DateTime.Now;
+            }
+
             try
             {
                 using (TcpClient client = new TcpClient())
                 {
                     // Устанавливаем тайм-аут для подключения
                     var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    var connectTask = client.ConnectAsync("26.206.192.9", 5000);
+                    var connectTask = client.ConnectAsync("26.245.20.241", 5000);
 
                     // Ожидаем завершения подключения или тайм-аута
                     await Task.WhenAny(connectTask, Task.Delay(-1, cancellationTokenSource.Token));
