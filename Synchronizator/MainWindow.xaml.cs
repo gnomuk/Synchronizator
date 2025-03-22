@@ -466,7 +466,7 @@ namespace Synchronizator
             }
         }
 
-        private void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        private async void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
@@ -476,18 +476,18 @@ namespace Synchronizator
             if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("FireD");
+                await SendMessageToMultipleComputers("FireD");
                 return;
             }
             if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Альтернативный огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Secondary");
+                await SendMessageToMultipleComputers("Secondary");
                 return;
             }
         }
 
-        private void GlobalHook_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private async void GlobalHook_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             bool buttonIsPressed = false;
 
@@ -497,7 +497,7 @@ namespace Synchronizator
             if (e.Button == GetMouseButtonFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Огонь").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Огонь").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("FireU");
+                await SendMessageToMultipleComputers("FireU");
                 return;
             }
         }
@@ -514,7 +514,7 @@ namespace Synchronizator
         //    }
         //}
 
-        private void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        private async void GlobalHook_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             bool buttonIsPressed = false;
 
@@ -525,14 +525,14 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("ShiftD");
+                await SendMessageToMultipleComputers("ShiftD");
                 return;
             }
             //Приседание
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Приседание").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("CtrlD");
+                await SendMessageToMultipleComputers("CtrlD");
                 return;
             }
 
@@ -540,7 +540,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Jump");
+                await SendMessageToMultipleComputers("Jump");
                 return;
             }
 
@@ -548,7 +548,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Выбросить оружие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Drop");
+                await SendMessageToMultipleComputers("Drop");
                 return;
             }
 
@@ -556,7 +556,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Взаимодействие").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Interact");
+                await SendMessageToMultipleComputers("Interact");
                 return;
             }
 
@@ -564,7 +564,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Перезарядка").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Reload");
+                await SendMessageToMultipleComputers("Reload");
                 return;
             }
 
@@ -572,7 +572,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Inspect");
+                await SendMessageToMultipleComputers("Inspect");
                 return;
             }
 
@@ -580,7 +580,7 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("Voice");
+                await SendMessageToMultipleComputers("Voice");
                 return;
             }
 
@@ -591,41 +591,41 @@ namespace Synchronizator
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "MainWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToMultipleComputers("MainWeapon");
+                    await SendMessageToMultipleComputers("MainWeapon");
                     return;
                 }
                 //Пистолет
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "SecondaryWeapon").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToMultipleComputers("SecondaryWeapon");
+                    await SendMessageToMultipleComputers("SecondaryWeapon");
                     return;
                 }
                 // Нож
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Knife").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToMultipleComputers("Knife");
+                    await SendMessageToMultipleComputers("Knife");
                     return;
                 }
                 // Гранаты
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Grenades").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToMultipleComputers("Grenades");
+                    await SendMessageToMultipleComputers("Grenades");
                     return;
                 }
                 //Бомба
                 if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Переключение оружия").SelectMany(j => j.Value.Keybinds).Where(k => k.Key == "Bomb").Select(k => k.Value).FirstOrDefault()) && !buttonIsPressed)
                 {
                     buttonIsPressed = true;
-                    SendMessageToMultipleComputers("Bomb");
+                    await SendMessageToMultipleComputers("Bomb");
                     return;
                 }
             }
         }
 
-        private void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
+        private async void GlobalHook_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             var loadedViewModel = new ViewModelConfiguration();
             loadedViewModel.LoadFromJson(CONFIG_PATH);
@@ -635,14 +635,14 @@ namespace Synchronizator
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Медленная ходьба").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("ShiftU");
+                await SendMessageToMultipleComputers("ShiftU");
                 return;
             }
             //Приседание
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Приседание").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
             {
                 buttonIsPressed = true;
-                SendMessageToMultipleComputers("CtrlU");
+                await SendMessageToMultipleComputers("CtrlU");
                 return;
             }
         }
@@ -760,14 +760,18 @@ namespace Synchronizator
 
         private async Task SendMessageToMultipleComputers(string message)
         {
+            List<Task> tasks = new List<Task>();
             var viewModel = (ViewModel)this.DataContext;
-            foreach (var address in viewModel.IPAdresses.Select(item => item.IPAddress).ToList())
+
+            foreach (var ip in viewModel.IPAdresses.Select(item => item.IPAddress).ToList())
             {
-                await SendMessageToOtherComputer(message, address);
+                tasks.Add(SendMessageToOtherComputer(ip, message));
             }
+
+            await Task.WhenAll(tasks);
         }
 
-        private async Task SendMessageToOtherComputer(string message, string ipAddress)
+        private async Task SendMessageToOtherComputer(string ipAddress, string message)
         {
             lock (sendLock)
             {
@@ -783,16 +787,9 @@ namespace Synchronizator
             {
                 using (TcpClient client = new TcpClient())
                 {
-                    // Устанавливаем тайм-аут для подключения
-                    var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                     var connectTask = client.ConnectAsync(ipAddress, 5000);
-
-                    // Ожидаем завершения подключения или тайм-аута
-                    await Task.WhenAny(connectTask, Task.Delay(-1, cancellationTokenSource.Token));
-
-                    if (connectTask.IsCompleted)
+                    if (await Task.WhenAny(connectTask, Task.Delay(5000)) == connectTask) // 5 секунд таймаут
                     {
-                        // Если подключение успешно
                         using (NetworkStream stream = client.GetStream())
                         {
                             byte[] data = Encoding.UTF8.GetBytes(message);
@@ -801,20 +798,14 @@ namespace Synchronizator
                     }
                     else
                     {
-                        // Если тайм-аут истек
-                        Console.WriteLine("Ошибка: Не удалось подключиться к серверу, тайм-аут истек.");
+                        Console.WriteLine($"Connection to {ipAddress} timed out.");
                     }
                 }
             }
-            catch (SocketException ex)
-            {
-                // Обработка ошибок сокетов
-                Console.WriteLine($"Ошибка сокета: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                // Обработка других ошибок
-                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                // Обработка исключений
+                Console.WriteLine($"Error sending message to {ipAddress}: {ex.Message}");
             }
         }
 
