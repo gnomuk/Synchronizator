@@ -244,6 +244,7 @@ namespace Synchronizator
             parameter_name.Content = "Список IP-адресов";
             HideAllBodyWindows();
             viewModel.IsMonitoring = true;
+            configurationMenu_grid.Visibility = Visibility.Visible;
             settings_Grid.Visibility = Visibility.Visible;
         }
 

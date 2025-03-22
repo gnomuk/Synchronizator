@@ -71,7 +71,7 @@
             </Grid>
 
             <!--Configuration-->
-            <Grid Visibility="Visible" x:Name="configurationMenu_grid" Grid.Column="1" Margin="5 0 0 0">
+            <Grid Visibility="Hidden" x:Name="configurationMenu_grid" Grid.Column="1" Margin="5 0 0 0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="*"/>
@@ -80,7 +80,7 @@
 
                 <Label x:Name="parameter_name" Padding="0" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold" Content="Конфигурация"/>
 
-                <Grid x:Name="settings_Grid" Visibility="Visible" Grid.Row="1">
+                <Grid x:Name="settings_Grid" Visibility="Hidden" Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="130"/>
                         <RowDefinition Height="40"/>
