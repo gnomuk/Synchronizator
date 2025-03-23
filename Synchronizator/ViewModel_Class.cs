@@ -22,44 +22,6 @@ public class ViewModel : INotifyPropertyChanged
         Items = new ObservableCollection<LVItemSource_Class>();
         IPAdresses = new ObservableCollection<Settings_ItemSource_Class>();
     }
-    public bool IsMonitoring
-    {
-        get => _isMonitoring;
-        set
-        {
-            _isMonitoring = value;
-            if (_isMonitoring)
-            {
-                StartMonitoring();
-            }
-            else
-            {
-                StopMonitoring();
-            }
-        }
-    }
-
-    private async void StartMonitoring()
-    {
-        _cancellationTokenSource = new CancellationTokenSource();
-        try
-        {
-            while (_isMonitoring)
-            {
-                await CheckIPAddressesAsync();
-                await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
-            }
-        }
-        catch (TaskCanceledException)
-        {
-            
-        }
-    }
-
-    private void StopMonitoring()
-    {
-        _cancellationTokenSource?.Cancel();
-    }
 
     public void AddItem(string parameter, bool Show_Gear, bool isChecked )
     {

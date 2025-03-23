@@ -15,6 +15,7 @@ using WindowsInput.Native;
 using System.Windows.Media.Imaging;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using System.Windows.Controls;
 
 namespace Synchronizator
 {
@@ -237,15 +238,16 @@ namespace Synchronizator
             PinButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/bluePin.png"));
         }
 
-        private void SettingsWindow_Click(object sender, RoutedEventArgs e)
+        private async void SettingsWindow_Click(object sender, RoutedEventArgs e)
         {
             var viewModel = (ViewModel)this.DataContext;
             parameter_name.Content = "Список IP-адресов";
             HideAllBodyWindows();
-            viewModel.IsMonitoring = true;
             configurationMenu_grid.Visibility = Visibility.Visible;
             settings_Grid.Visibility = Visibility.Visible;
             saveConfig_Button.Visibility = Visibility.Hidden;
+            Grid.SetColumnSpan(closeConfig_Button, 2);
+            await viewModel.CheckIPAddressesAsync();
         }
 
         private void CreateConfig()
@@ -453,7 +455,7 @@ namespace Synchronizator
             viewModelConfig.SaveToJson(CONFIG_PATH);
         }
 
-        private void AddIPAdress_Button(object sender, RoutedEventArgs e)
+        private async void AddIPAdress_Button(object sender, RoutedEventArgs e)
         {
             var viewModel = (ViewModel)this.DataContext;
 
@@ -464,6 +466,14 @@ namespace Synchronizator
                 viewModel.SaveIPAdresses(IPADDRESS_PATH);
                 IPAddress_TextBox.Clear();
             }
+
+            await viewModel.CheckIPAddressesAsync();
+        }
+
+        private async void RefreshConnectionStatus(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (ViewModel)this.DataContext;
+            await viewModel.CheckIPAddressesAsync();
         }
 
         private async void GlobalHook_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -954,8 +964,8 @@ namespace Synchronizator
 
         private void HideAllBodyWindows()
         {
+            Grid.SetColumnSpan(closeConfig_Button, 1);
             var viewModel = (ViewModel)this.DataContext;
-            viewModel.IsMonitoring = false;
             settings_Grid.Visibility = Visibility.Hidden;
             mainConfig_Grid.Visibility= Visibility.Hidden;
             mouseInput_Config_Grid.Visibility = Visibility.Hidden;

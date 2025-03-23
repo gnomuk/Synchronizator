@@ -156,5 +156,11 @@
   <ItemGroup>
     <Resource Include="Assets\Images\delete.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Icons\sync.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Icons\arrow.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

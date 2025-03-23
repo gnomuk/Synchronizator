@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Synchronizator"
         mc:Ignorable="d"
+        Icon="pack://application:,,,/Assets/Icons/arrow.ico"
         Title="Synchronizator" Height="350" Width="500" MinWidth="500" MinHeight="350" MaxWidth="800" MaxHeight="500" WindowStyle="None" MouseLeftButtonDown="Window_MouseLeftButtonDown" Loaded="Window_Loaded" Background="#FF7B7B7B">
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0"/>
@@ -119,7 +120,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Button Content="Обн." Margin="0 0 2.5 0" Grid.Column="0" BorderBrush="#FFC8C8C8" Click="AddIPAdress_Button"/>
+                            <Button Content="Обн." Margin="0 0 2.5 0" Grid.Column="0" BorderBrush="#FFC8C8C8" Click="RefreshConnectionStatus"/>
                             <Button Content="Добавить адрес" Margin="2.5 0 0 0" Grid.Column="1" BorderBrush="#FFC8C8C8" Click="AddIPAdress_Button"/>
                         </Grid>
 
@@ -173,7 +174,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Button x:Name="saveConfig_Button" Content="Сохранить" Grid.Column="1" Margin="2.5,3,0,0" Background="#FFCCCCCC" BorderBrush="#FFC8C8C8" Click="SaveParameterConfiguration_Button"/>
-                    <Button Content="Закрыть" Grid.Column="0" Margin="0,3,2.5,0" Background="#FFF3A0A0" BorderBrush="#FFC8C8C8" Click="closeConfigurationMenu_button"/>
+                    <Button x:Name="closeConfig_Button" Content="Закрыть" Grid.Column="0" Margin="0,3,2.5,0" Background="#FFF3A0A0" BorderBrush="#FFC8C8C8" Click="closeConfigurationMenu_button"/>
                 </Grid>
             </Grid>
         </Grid>
