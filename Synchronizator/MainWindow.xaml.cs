@@ -26,10 +26,10 @@ namespace Synchronizator
         private InputSimulator inputSimulator;
         private IKeyboardMouseEvents _globalHook;
         private IKeyboardMouseEvents _globalHookSettings;
-        private DateTime lastSendTime = DateTime.MinValue;
+        //private DateTime lastSendTime = DateTime.MinValue;
         Task UDPListenerTask = null;
 
-        private readonly object sendLock = new object();
+        //private readonly object sendLock = new object();
 
         string selected_parameter = "";
         bool isMouseSettingsSelected = false;
@@ -38,7 +38,7 @@ namespace Synchronizator
         readonly string IPADDRESS_PATH = $"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}/Synchronizator/ips.txt";
         bool connected = false;
 
-        Dictionary<string, Keys> winFormsKeycodes = new Dictionary<string, Keys>
+        readonly Dictionary<string, Keys> winFormsKeycodes = new Dictionary<string, Keys>
         {
             {"A", Keys.A},
             {"B", Keys.B},
@@ -95,7 +95,7 @@ namespace Synchronizator
             {"D0", Keys.D0}
         };
 
-        Dictionary<string, VirtualKeyCode> virtualKeycodes = new Dictionary<string, VirtualKeyCode>
+        readonly Dictionary<string, VirtualKeyCode> virtualKeycodes = new Dictionary<string, VirtualKeyCode>
         {
             {"D0", VirtualKeyCode.VK_0},
             {"D1", VirtualKeyCode.VK_1},
@@ -153,14 +153,14 @@ namespace Synchronizator
             {"RightShift", VirtualKeyCode.RSHIFT}
         };
 
-        Dictionary<string, MouseButtons> mouseKeycodes = new Dictionary<string, MouseButtons>
+        readonly Dictionary<string, MouseButtons> mouseKeycodes = new Dictionary<string, MouseButtons>
         {
             {"Left", MouseButtons.Left},
             {"Right", MouseButtons.Right},
             {"Middle", MouseButtons.Middle}
         };
 
-        Dictionary<string, int> parameters = new Dictionary<string, int>()
+        readonly Dictionary<string, int> parameters = new Dictionary<string, int>()
         {
             {"Прыжок", 1}, // Готово
             {"Приседание", 1},
@@ -333,8 +333,9 @@ namespace Synchronizator
             WindowState = WindowState.Minimized;
         }
 
-        private void CloseWindow_Click(object sender, RoutedEventArgs e)
+        private void CloseWindow_Click(object sender, RoutedEventArgs e)       
         {
+            if (_globalHook != null) StopServer();
             Close();
         }
 
@@ -545,6 +546,14 @@ namespace Synchronizator
                 await SendMessageToMultipleComputers("CtrlD");
                 return;
             }
+            //Голосовой чат
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                await SendMessageToMultipleComputers("VoiceD");
+                return;
+            }
+
 
             //Прыжок
             if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Прыжок").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
@@ -583,14 +592,6 @@ namespace Synchronizator
             {
                 buttonIsPressed = true;
                 await SendMessageToMultipleComputers("Inspect");
-                return;
-            }
-
-            //Голосовой чат
-            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
-            {
-                buttonIsPressed = true;
-                await SendMessageToMultipleComputers("Voice");
                 return;
             }
 
@@ -655,6 +656,13 @@ namespace Synchronizator
                 await SendMessageToMultipleComputers("CtrlU");
                 return;
             }
+            //Голосовой чат
+            if (e.KeyCode == GetWinFormsKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()) && loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").Select(j => j.Value.Enabled).FirstOrDefault() && !buttonIsPressed)
+            {
+                buttonIsPressed = true;
+                await SendMessageToMultipleComputers("VoiceU");
+                return;
+            }
         }
 
         private void GlobalHook_KeyDownSettings(object sender, System.Windows.Forms.KeyEventArgs e)
@@ -704,9 +712,9 @@ namespace Synchronizator
         private void StopServer()
         {
             UnsubscribeFromGlobalHook();
+            UDPListenerTask.Dispose();
             udpListener.Close();
             udpSender.Close();
-            UDPListenerTask.Dispose();
             connected = false;
             ConnectButton_Image.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/Images/redPin.png"));
         }
@@ -752,7 +760,17 @@ namespace Synchronizator
                     KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Приседание").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                     break;
 
-                    //Огонь
+                //Голосовой чат
+                case "VoiceD":
+                    KeyboardButtonDown(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
+                //Голосовой чат
+                case "VoiceU":
+                    KeyboardButtonUp(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
+                    break;
+
+
+                //Огонь
                 case "FireD":
                     MouseButtonDown();
                     break;
@@ -790,11 +808,6 @@ namespace Synchronizator
                     //Осмотр оружия
                 case "Inspect":
                     PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Осмотр оружия").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
-                    break;
-
-                    //Голосовой чат
-                case "Voice":
-                    PressKeyboardButton(GetVirtualKeyCodeFromDictionary(loadedViewModel.Parameters.Where(x => x.Key == "Голосовой чат").SelectMany(j => j.Value.Keybinds).Select(k => k.Value).FirstOrDefault()));
                     break;
                     
                     //Переключение оружия

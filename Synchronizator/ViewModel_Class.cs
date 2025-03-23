@@ -11,9 +11,6 @@ using System.Windows.Media.Imaging;
 
 public class ViewModel : INotifyPropertyChanged
 {
-    private CancellationTokenSource _cancellationTokenSource;
-    private bool _isMonitoring = false;
-
     public ObservableCollection<LVItemSource_Class> Items { get; set; }
     public ObservableCollection<Settings_ItemSource_Class> IPAdresses { get; set; }
 
